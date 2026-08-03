@@ -6,7 +6,7 @@
 ![AI Bully Lab Game](https://img.shields.org/badge/Game-Live-00f0ff?style=for-the-badge&logo=gamepad)
 ![License](https://img.shields.org/badge/License-MIT-bd00ff?style=for-the-badge)
 
-🎮 **정식 라이브 웹 게임 주소**: [https://golddragon0926.github.io/ai-bully-lab](https://golddragon0926.github.io/ai-bully-lab)
+🎮 **정식 라이브 웹 게임 주소**: [https://golddragon0207.github.io/ai-bully-lab](https://golddragon0207.github.io/ai-bully-lab)
 
 ---
 
@@ -84,7 +84,7 @@ ai-bully-lab/
 
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/golddragon0926/ai-bully-lab.git
+git clone https://github.com/golddragon0207/ai-bully-lab.git
 cd ai-bully-lab
 
 # 2. 패키지 설치
