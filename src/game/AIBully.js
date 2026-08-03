@@ -1,0 +1,170 @@
+export class AIBully {
+  constructor(hud, audioEngine, particleSystem) {
+    this.hud = hud;
+    this.audio = audioEngine;
+    this.particles = particleSystem;
+
+    // AI Heat & Overheat Cooldown
+    this.heat = 0; // 0 to 100
+    this.maxHeat = 100;
+    this.isOverheated = false;
+    this.overheatTimer = 0;
+    this.maxOverheatDuration = 180; // 3 seconds at 60fps
+
+    // Teleportation Pre-telegraphing (0.5s Warning Glow)
+    this.isTelegraphing = false;
+    this.telegraphTimer = 0;
+    this.telegraphDuration = 30; // 0.5 seconds at 60fps
+    this.targetCube = null;
+
+    // AI Gravity & Environmental Traps
+    this.gravityDir = 1; // 1 = Normal, -1 = Inverted
+    this.gravityTimer = 0;
+
+    // Taunts Pool
+    this.tauntsTeleport = [
+      "어딜 골인 지점에 손을 대? 텔레포트 ㅋ",
+      "방금 건 좀 아까웠지? 골인 큐브 워프!",
+      "손끝도 못 대죠? ㅋㅋㅋ 텔레포트!",
+      "0.5초 안에 피해보시든가 ㅋ"
+    ];
+
+    this.tauntsDodged = [
+      "아니 0.5초 피지컬 대시로 피한다고???",
+      "치사하게 대시로 낚아채네 😡",
+      "패링각 실화냐?! 억까 반사됨 💥",
+      "피지컬 지리네... 치사하다"
+    ];
+
+    this.tauntsOverheat = [
+      "크윽... AI 뇌절 과열됐다! (3초 쿨타임)",
+      "시스템 과열 중... 3초간 억까 휴업!",
+      "쿨타임 돌았다... 지금 깨봐라 😡"
+    ];
+  }
+
+  reset() {
+    this.heat = 0;
+    this.isOverheated = false;
+    this.overheatTimer = 0;
+    this.isTelegraphing = false;
+    this.telegraphTimer = 0;
+    this.gravityDir = 1;
+    this.gravityTimer = 0;
+    this.hud.updateAIHeat(0, false);
+  }
+
+  update(player, goalCube, stage) {
+    // Overheat Cooldown countdown
+    if (this.isOverheated) {
+      this.overheatTimer--;
+      this.hud.updateAIHeat(100, true);
+      if (this.overheatTimer <= 0) {
+        this.isOverheated = false;
+        this.heat = 0;
+        this.hud.updateAIHeat(0, false);
+        this.hud.setAIDialogue("충전 완료! 다시 억까 모드 가동 🤖");
+      }
+      return; // No attacks during overheat!
+    }
+
+    // Handle Active Telegraphing (0.5s pre-warning window)
+    if (this.isTelegraphing) {
+      this.telegraphTimer--;
+      this.hud.updateAIHeat(this.heat, false);
+
+      // Emit warning sparks on goal cube
+      if (goalCube) {
+        this.particles.emit(
+          goalCube.x + goalCube.width / 2,
+          goalCube.y + goalCube.height / 2,
+          '#ff2a5f', 3, 5, 2, 10
+        );
+        this.audio.playTeleportWarning();
+      }
+
+      // Check if Player DODGED via SHIFT Dash OR PARRIED via Spacebar
+      if (player.isDashing || player.isParrying) {
+        // Player successfully DODGED or PARRIED!
+        this.isTelegraphing = false;
+        this.heat += 40; // Penalty to AI heat!
+        const taunt = this.tauntsDodged[Math.floor(Math.random() * this.tauntsDodged.length)];
+        this.hud.setAIDialogue(taunt);
+        this.hud.triggerDodgeChat();
+
+        if (player.isParrying) {
+          this.audio.playParry();
+          this.particles.emitParryShockwave(player.x, player.y);
+          this.hud.spawnFakePopup("PARRY SUCCESS!", "억까 반사 성공! AI 멘탈 타격!");
+        }
+
+        this.checkOverheat();
+        return;
+      }
+
+      // If 0.5s telegraphing window expires and player DID NOT dodge/parry ➔ Execute Teleport!
+      if (this.telegraphTimer <= 0) {
+        this.executeTeleport(goalCube, stage);
+      }
+      return;
+    }
+
+    // Distance check to initiate Teleport Attack when player approaches Goal Cube
+    if (goalCube && !this.isTelegraphing && !this.isOverheated) {
+      const dist = Math.hypot(
+        (player.x + player.width / 2) - (goalCube.x + goalCube.width / 2),
+        (player.y + player.height / 2) - (goalCube.y + goalCube.height / 2)
+      );
+
+      if (dist < 110) {
+        // Trigger 0.5s pre-telegraphing warning glow!
+        this.isTelegraphing = true;
+        this.telegraphTimer = this.telegraphDuration;
+        this.hud.setAIDialogue("⚠️ 0.5초 후 텔레포트 발동! (SHIFT 대시로 피해라!)");
+      }
+    }
+  }
+
+  executeTeleport(goalCube, stage) {
+    this.isTelegraphing = false;
+    this.heat += 30;
+
+    // Relocate Goal Cube to new valid location in stage
+    stage.relocateGoalCube(goalCube);
+    this.audio.playTeleportWarp();
+
+    // Particle FX
+    this.particles.emitSparks(goalCube.x + goalCube.width / 2, goalCube.y + goalCube.height / 2);
+
+    const taunt = this.tauntsTeleport[Math.floor(Math.random() * this.tauntsTeleport.length)];
+    this.hud.setAIDialogue(taunt);
+    this.hud.triggerTeleportChat();
+
+    // Random chance to spawn fake error popup
+    if (Math.random() < 0.4) {
+      this.hud.spawnFakePopup("SYSTEM ERROR", "스트리머 멘탈이 30% 감소했습니다.");
+    }
+
+    this.checkOverheat();
+  }
+
+  checkOverheat() {
+    this.hud.updateAIHeat(this.heat, false);
+    if (this.heat >= this.maxHeat) {
+      this.isOverheated = true;
+      this.overheatTimer = this.maxOverheatDuration;
+      const taunt = this.tauntsOverheat[Math.floor(Math.random() * this.tauntsOverheat.length)];
+      this.hud.setAIDialogue(taunt);
+      this.hud.spawnFakePopup("OVERHEAT DETECTED!", "AI가 3초간 과열에 빠졌습니다! 지금 골인하세요!");
+      this.audio.playExplosion();
+    }
+  }
+
+  bribeAI() {
+    if (this.isOverheated) return;
+    this.heat += 35;
+    this.hud.setAIDialogue("도게자를 올리는군 ㅋ 뇌물 수수 후 잠시 감시를 느슨하게 해주지");
+    this.hud.addChatMessage("스트리머가 AI한테 도게자를 박습니다 ㅋㅋㅋㅋ", "highlight");
+    this.checkOverheat();
+  }
+}

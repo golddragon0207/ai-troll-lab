@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Bully Lab (AI의 킹받는 텔레포트 실험실) - Streamer Arcade</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Pretendard:wght@400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="dark-theme">
+  <!-- Broadcast Streamer Frame Container -->
+  <div id="app" class="broadcast-container">
+    
+    <!-- Top Broadcast Header HUD -->
+    <header class="broadcast-header">
+      <div class="header-left">
+        <div class="live-badge"><span class="blink-dot"></span> LIVE</div>
+        <div class="stream-title">
+          <span class="game-logo">🤖 AI BULLY LAB</span>
+          <span class="sub-tag">EP.01 스트리머 vs 억까 AI</span>
+        </div>
+      </div>
+      <div class="header-center">
+        <div class="ai-status-container">
+          <div class="ai-avatar-box">
+            <span class="ai-icon">🤖</span>
+            <div class="ai-name">AI MASTER "BULLY"</div>
+          </div>
+          <div id="ai-dialogue-banner" class="ai-dialogue-banner">
+            "어서와라 자칭 천재 스트리머. 텔레포트 맛좀 볼래?"
+          </div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="stage-info">
+          <span class="stage-label">STAGE</span>
+          <span id="current-stage-num" class="stage-num">01 / 05</span>
+        </div>
+        <button id="sound-toggle-btn" class="icon-btn" title="사운드 토글">🔊</button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Layout: Game Canvas + Streamer Cam & Chat Bar -->
+    <main class="main-content">
+      
+      <!-- Left / Center: Game Stage Viewport -->
+      <div class="viewport-wrapper">
+        <canvas id="game-canvas" width="960" height="600"></canvas>
+        
+        <!-- Screen Shake & Glitch Overlay Container -->
+        <div id="fx-overlay" class="fx-overlay"></div>
+
+        <!-- Fake Windows Error Popup Container -->
+        <div id="popup-layer" class="popup-layer"></div>
+
+        <!-- Start / Pause Game Overlay -->
+        <div id="start-overlay" class="game-overlay active">
+          <div class="overlay-card glass-panel">
+            <h1 class="glow-title">🤖 AI BULLY LAB</h1>
+            <p class="hero-desc">유튜버 멘탈 파괴 특화! 억까 AI의 텔레포트를 0.5초 피지컬 대시와 패링으로 깨부숴라!</p>
+            
+            <div class="controls-guide">
+              <div class="guide-item">
+                <span class="key">WASD</span> / <span class="key">방향키</span>
+                <span class="desc">이동 및 점프</span>
+              </div>
+              <div class="guide-item">
+                <span class="key">SHIFT</span>
+                <span class="desc">0.5초 피지컬 대시 (텔레포트 피하기)</span>
+              </div>
+              <div class="guide-item">
+                <span class="key">SPACE</span>
+                <span class="desc">억까 패링 (스킬 반사)</span>
+              </div>
+            </div>
+
+            <div class="tip-box">
+              💡 <strong>스트리머 팁:</strong> AI가 텔레포트하기 0.5초 전 붉은 예고 스파크가 튑니다! 예고를 읽고 SHIFT 대시로 큐브를 낚아채세요!
+            </div>
+
+            <button id="start-btn" class="primary-btn glow-btn">🎮 방송 시작하기 (PLAY)</button>
+          </div>
+        </div>
+
+        <!-- Game Over / Game Clear Overlay -->
+        <div id="result-overlay" class="game-overlay hidden">
+          <div class="overlay-card glass-panel text-center">
+            <h2 id="result-title" class="result-title">MENTAL BROKEN! 💥</h2>
+            <p id="result-desc" class="result-desc">AI에게 멘탈이 바사삭 부서졌습니다.</p>
+            <div class="stats-grid">
+              <div class="stat-box">
+                <div class="stat-label">도달한 스테이지</div>
+                <div id="stat-stage" class="stat-value">Stage 3</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">성공한 대시 피하기</div>
+                <div id="stat-dashes" class="stat-value">5회</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">AI 과열 야기 횟수</div>
+                <div id="stat-cooldowns" class="stat-value">2회</div>
+              </div>
+            </div>
+            <button id="restart-btn" class="primary-btn glow-btn">🔄 다시 도전하기 (RETRY)</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Sidebar: Streamer Webcam + Mental Meter + Live Viewer Chat -->
+      <aside class="sidebar-panel">
+        
+        <!-- Streamer Webcam Box -->
+        <div class="webcam-box glass-panel">
+          <div class="webcam-header">
+            <span class="webcam-tag">📷 STREAMER CAM</span>
+            <button id="cam-toggle-btn" class="cam-btn">웹캠 켜기</button>
+          </div>
+          <div class="webcam-viewport">
+            <video id="webcam-video" autoplay playsinline muted class="webcam-video hidden"></video>
+            <div id="avatar-fallback" class="avatar-fallback">
+              <div id="streamer-face" class="streamer-face">😱</div>
+              <div id="streamer-state" class="streamer-state">멘탈 충전 완료</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Streamer Mental HP & Rage Gauge -->
+        <div class="status-panel glass-panel">
+          <div class="stat-bar-group">
+            <div class="stat-bar-header">
+              <span>🧠 스트리머 멘탈 (Mental HP)</span>
+              <span id="mental-hp-val">100%</span>
+            </div>
+            <div class="bar-outer">
+              <div id="mental-hp-bar" class="bar-inner hp-fill" style="width: 100%;"></div>
+            </div>
+          </div>
+
+          <div class="stat-bar-group">
+            <div class="stat-bar-header">
+              <span>⚡ 대시 쿨타임 (DASH)</span>
+              <span id="dash-status-val">READY</span>
+            </div>
+            <div class="bar-outer">
+              <div id="dash-cooldown-bar" class="bar-inner dash-fill" style="width: 100%;"></div>
+            </div>
+          </div>
+
+          <div class="stat-bar-group">
+            <div class="stat-bar-header">
+              <span>🔥 AI 과열 (Bully Overheat)</span>
+              <span id="ai-heat-val">0%</span>
+            </div>
+            <div class="bar-outer">
+              <div id="ai-heat-bar" class="bar-inner heat-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Viewer Chat Simulator -->
+        <div class="chat-panel glass-panel">
+          <div class="chat-header">
+            <span>💬 실시간 시청자 챗</span>
+            <span class="viewer-count">👁️ 14,290명</span>
+          </div>
+          <div id="chat-messages" class="chat-messages">
+            <!-- Messages inserted dynamically via JS -->
+          </div>
+          <div class="chat-input-row">
+            <input type="text" id="chat-fake-input" placeholder="시청자 챗 반응 감상 중..." disabled>
+            <button id="bribe-btn" class="bribe-btn" title="AI에게 뇌물 바치기">🙏 도게자</button>
+          </div>
+        </div>
+
+      </aside>
+
+    </main>
+
+    <!-- Bottom Status Bar -->
+    <footer class="broadcast-footer">
+      <div class="footer-left">
+        <span class="keyboard-badge">⌨️ WASD/방향키: 이동</span>
+        <span class="keyboard-badge">SHIFT: 0.5초 피지컬 대시</span>
+        <span class="keyboard-badge">SPACE: 억까 패링</span>
+      </div>
+      <div class="footer-right">
+        <span class="copyright">AI BULLY LAB v1.0 • Streamer Edition</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
