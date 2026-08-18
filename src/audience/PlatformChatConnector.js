@@ -2,8 +2,7 @@ import { CHAT_PROXY_URL } from './platformConfig.js';
 
 const PLATFORM_LABELS = {
   soop: 'SOOP',
-  chzzk: '치지직',
-  youtube: 'YouTube'
+  chzzk: '치지직'
 };
 
 export class PlatformChatConnector {
@@ -27,13 +26,6 @@ export class PlatformChatConnector {
         return url.pathname.split('/').filter(Boolean)[0] || '';
       }
 
-      if (platform === 'youtube') {
-        if (/^[a-zA-Z0-9_-]{11}$/.test(value)) return value;
-        const url = new URL(value.startsWith('http') ? value : `https://${value}`);
-        if (url.hostname === 'youtu.be') return url.pathname.split('/').filter(Boolean)[0] || '';
-        const liveMatch = url.pathname.match(/\/live\/([a-zA-Z0-9_-]{11})/);
-        return liveMatch?.[1] || url.searchParams.get('v') || '';
-      }
     } catch {
       return '';
     }
@@ -41,7 +33,7 @@ export class PlatformChatConnector {
     return value;
   }
 
-  async connect(platform, input, options = {}) {
+  async connect(platform, input) {
     if (!PLATFORM_LABELS[platform]) return false;
     const targetId = this.parseStreamTarget(platform, input);
     if (!targetId) {
@@ -65,7 +57,6 @@ export class PlatformChatConnector {
     try {
       if (platform === 'soop') await this.connectSoop(channel);
       if (platform === 'chzzk') await this.connectChzzk(channel);
-      if (platform === 'youtube') await this.connectYouTube(channel, options.youtubeApiKey);
       return true;
     } catch (error) {
       if (channel.active) this.setStatus(platform, 'error', error.message || '연결에 실패했습니다.');
@@ -250,54 +241,6 @@ export class PlatformChatConnector {
     socket.onclose = () => {
       if (channel.active) this.setStatus('soop', 'disconnected', '연결 종료됨 · 다시 연결해주세요.');
     };
-  }
-
-  async connectYouTube(channel, apiKey) {
-    const key = String(apiKey || '').trim();
-    if (!key) throw new Error('YouTube API 키를 입력해주세요.');
-
-    const videoResponse = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${encodeURIComponent(channel.targetId)}&key=${encodeURIComponent(key)}`
-    );
-    if (!videoResponse.ok) throw new Error(`YouTube 방송 조회 실패 (HTTP ${videoResponse.status})`);
-    const videoData = await videoResponse.json();
-    const liveChatId = videoData?.items?.[0]?.liveStreamingDetails?.activeLiveChatId;
-    if (!liveChatId) throw new Error('현재 라이브 방송이 아니거나 채팅이 비활성화되어 있습니다.');
-
-    let nextPageToken = '';
-    let initialPoll = true;
-    const poll = async () => {
-      if (!channel.active) return;
-      try {
-        const url = new URL('https://www.googleapis.com/youtube/v3/liveChat/messages');
-        url.searchParams.set('liveChatId', liveChatId);
-        url.searchParams.set('part', 'snippet,authorDetails');
-        url.searchParams.set('key', key);
-        if (nextPageToken) url.searchParams.set('pageToken', nextPageToken);
-
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`YouTube 채팅 조회 실패 (HTTP ${response.status})`);
-        const data = await response.json();
-        nextPageToken = data.nextPageToken || '';
-        this.setStatus('youtube', 'connected', '실시간 채팅 연결됨');
-
-        if (!initialPoll) {
-          (data.items || []).forEach((item) => this.emitMessage(
-            'youtube',
-            item.authorDetails?.channelId,
-            item.authorDetails?.displayName,
-            item.snippet?.displayMessage
-          ));
-        }
-        initialPoll = false;
-        const delay = Math.max(1000, Number(data.pollingIntervalMillis) || 5000);
-        channel.timer = window.setTimeout(poll, delay);
-      } catch (error) {
-        this.setStatus('youtube', 'error', error.message);
-      }
-    };
-
-    await poll();
   }
 
   get SOOP_ESCAPE() { return '\x1b\t'; }

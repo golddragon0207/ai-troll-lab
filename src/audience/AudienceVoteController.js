@@ -10,7 +10,6 @@ const VOTE_OPTIONS = [
 const PLATFORM_LABELS = {
   soop: 'SOOP',
   chzzk: '치지직',
-  youtube: 'YouTube',
   test: 'TEST'
 };
 
@@ -54,7 +53,7 @@ export class AudienceVoteController {
     }
     this.setStatus(
       this.relay?.readyState === WebSocket.OPEN
-        ? '3플랫폼 릴레이 연결됨'
+        ? 'SOOP·치지직 릴레이 연결됨'
         : CHAT_PROXY_URL
           ? 'SOOP·치지직 프록시 준비됨 · 테스트 모드'
           : '로컬 테스트 모드'
@@ -191,7 +190,7 @@ export class AudienceVoteController {
     try {
       this.relay = new WebSocket(relayUrl);
       this.setStatus('채팅 릴레이 연결 중…');
-      this.relay.addEventListener('open', () => this.setStatus('3플랫폼 릴레이 연결됨'));
+      this.relay.addEventListener('open', () => this.setStatus('SOOP·치지직 릴레이 연결됨'));
       this.relay.addEventListener('message', (event) => {
         try {
           const payload = JSON.parse(event.data);

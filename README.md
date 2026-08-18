@@ -16,11 +16,11 @@
    - 화면 구석에 스트리머 웹캠 배치 프레임 제공 (실제 카메라 연동 및 귀여운 가상 아바타 표정 변화 자동 지원)
 2. **🧠 스트리머 멘탈 HP & 억까 파괴 연출**
    - 억까 당할 때마다 멘탈 게이지 감소 + 화면 붉은 흔들림(Screen Shake) 이펙트
-3. **💬 3플랫폼 실시간 채팅 연동**
-   - SOOP·치지직·YouTube 라이브 채팅을 게임의 시청자 투표로 직접 반영
+3. **💬 SOOP·치지직 실시간 채팅 연동**
+   - SOOP·치지직 라이브 채팅을 게임의 시청자 투표로 직접 반영
 4. **🔊 무저작권 Web Audio API 사운드**
    - 방송 저작권 걱정 없이 웹 브라우저가 직접 합성하는 레트로 8-bit 효과음 (점프, 대시, 텔레포트, 폭발, AI 비웃음)
-5. **🗳️ SOOP · 치지직 · YouTube 공통 시청자 투표**
+5. **🗳️ SOOP · 치지직 공통 시청자 투표**
    - `!회복`, `!과열`, `!워프`, `!충격` 명령을 20초 동안 집계해 최다 득표 효과를 게임에 반영
    - 플랫폼과 사용자 ID를 조합해 한 라운드 한 표만 허용하며, 명령을 바꾸면 기존 표를 이동
    - 방송 연동 전에도 사이드바의 플랫폼 선택/입력창으로 전체 흐름을 테스트 가능
@@ -44,13 +44,7 @@ https://ai-troll-lab-chat-proxy.skkim867.workers.dev
 https://ai-troll-lab-chat-proxy.skkim867.workers.dev/health
 ```
 
-YouTube API 키는 저장소에 직접 기록하지 않고 GitHub Actions의 `YOUTUBE_API_KEY` Repository Secret을 빌드 시 `VITE_YOUTUBE_API_KEY`로 주입합니다. 로컬 개발에서는 실방송 연동 창에 키를 입력하거나, 커밋되지 않는 `.env.local`을 사용할 수 있습니다.
-
-```text
-VITE_YOUTUBE_API_KEY=발급받은_API_키
-```
-
-SOOP·치지직은 프로젝트 전용 Cloudflare Worker가 CORS가 없는 공개 채팅 API 요청만 중계합니다. YouTube는 YouTube Data API v3를 사용합니다. 방송 주소와 테스트용 수동 API 키는 사용자의 브라우저 저장소에만 저장됩니다.
+SOOP·치지직은 프로젝트 전용 Cloudflare Worker가 CORS가 없는 공개 채팅 API 요청만 중계합니다. 방송 주소는 사용자의 브라우저 저장소에만 저장됩니다. YouTube 연동은 지속적인 API 폴링과 할당량 소모를 피하기 위해 제공하지 않습니다.
 
 개발 중에는 브라우저 이벤트로도 동일한 입력을 테스트할 수 있습니다.
 
@@ -139,7 +133,6 @@ cd ai-troll-lab
 npm install
 
 # 3. 로컬 키 설정 (.env.local, 커밋 금지)
-VITE_YOUTUBE_API_KEY=발급받은_YouTube_키
 VITE_FIREBASE_API_KEY=Firebase_Web_API_키
 
 # 4. 개발 서버 실행
@@ -149,7 +142,7 @@ npm run dev
 npm run build
 ```
 
-배포 시 키는 GitHub Actions Repository Secrets의 `YOUTUBE_API_KEY`, `FIREBASE_API_KEY`에서 빌드 환경으로 주입합니다. Firestore 접근 권한은 [firestore.rules](./firestore.rules)에서 랭킹 공개 조회·검증된 신규 등록과 비공개 건의 등록만 허용합니다.
+배포 시 Firebase 키는 GitHub Actions Repository Secret의 `FIREBASE_API_KEY`에서 빌드 환경으로 주입합니다. Firestore 접근 권한은 [firestore.rules](./firestore.rules)에서 랭킹 공개 조회·검증된 신규 등록과 비공개 건의 등록만 허용합니다.
 
 ---
 

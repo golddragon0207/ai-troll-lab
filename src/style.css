@@ -707,8 +707,7 @@ body {
   gap: 6px;
 }
 
-.platform-connect-controls input,
-.youtube-key-input {
+.platform-connect-controls input {
   min-width: 0;
   padding: 8px 10px;
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -731,11 +730,6 @@ body {
 .platform-connect-controls .disconnect-btn {
   border-color: rgba(255, 42, 95, 0.55);
   background: rgba(255, 42, 95, 0.12);
-}
-
-.youtube-key-input {
-  width: 100%;
-  margin-top: 7px;
 }
 
 .chat-connect-note {
@@ -821,7 +815,6 @@ body {
 .badge-fan { background: rgba(255,255,255,0.15); color: #fff; }
 .badge-soop { background: #0545b1; color: #fff; }
 .badge-chzzk { background: #00ffa3; color: #06150f; }
-.badge-youtube { background: #ff0033; color: #fff; }
 .badge-test { background: #5d667a; color: #fff; }
 .badge-system { background: var(--cyber-yellow); color: #111; }
 

@@ -224,7 +224,6 @@
             <select id="audience-test-platform" aria-label="테스트 플랫폼">
               <option value="soop">SOOP</option>
               <option value="chzzk">치지직</option>
-              <option value="youtube">YouTube</option>
             </select>
             <input type="text" id="audience-test-input" placeholder="!회복 등 테스트" maxlength="160" autocomplete="off">
             <button class="vote-send-btn" type="submit">전송</button>
@@ -252,7 +251,7 @@
       <section class="support-card chat-connect-card glass-panel">
         <button id="chat-connect-close-btn" class="support-close-btn" type="button" aria-label="채팅 연동 창 닫기">×</button>
         <span class="support-kicker">LIVE CHAT</span>
-        <h2 id="chat-connect-title" class="support-title">3플랫폼 실방송 연동</h2>
+        <h2 id="chat-connect-title" class="support-title">SOOP·치지직 실방송 연동</h2>
         <p class="support-description">방송 주소를 입력하면 해당 플랫폼의 채팅 명령이 시청자 투표에 반영됩니다.</p>
 
         <div class="platform-connect-list">
@@ -274,18 +273,9 @@
             </div>
           </section>
 
-          <section class="platform-connect-row" data-platform-row="youtube">
-            <div class="platform-connect-heading"><strong>🔴 YouTube</strong><span class="platform-status" data-platform-status="youtube">연결 안 됨</span></div>
-            <div class="platform-connect-controls">
-              <input data-platform-input="youtube" type="text" placeholder="YouTube 라이브 URL 또는 영상 ID" autocomplete="off">
-              <button data-platform-connect="youtube" type="button">연결</button>
-              <button data-platform-disconnect="youtube" class="disconnect-btn" type="button">해제</button>
-            </div>
-            <input id="youtube-api-key-input" class="youtube-key-input" type="password" placeholder="YouTube Data API v3 키 (이 브라우저에만 저장)" autocomplete="off">
-          </section>
         </div>
 
-        <p class="chat-connect-note">SOOP·치지직은 AI Troll Lab 전용 Worker를 사용합니다. YouTube 키는 저장소에 포함되지 않습니다.</p>
+        <p class="chat-connect-note">SOOP·치지직은 AI Troll Lab 전용 Worker를 사용합니다. YouTube 연동은 API 할당량 보호를 위해 제공하지 않습니다.</p>
       </section>
     </div>
 

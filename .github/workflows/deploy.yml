@@ -35,7 +35,6 @@ jobs:
       - name: Build project
         run: npm run build
         env:
-          VITE_YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           VITE_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
 
       - name: Setup Pages

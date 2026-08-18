@@ -4,7 +4,6 @@ import { AudioEngine } from './ui/AudioEngine.js';
 import { refreshAdfitSlot } from './ui/AdFitManager.js';
 import { AudienceVoteController } from './audience/AudienceVoteController.js';
 import { PlatformChatConnector } from './audience/PlatformChatConnector.js';
-import { YOUTUBE_API_KEY } from './audience/platformConfig.js';
 import { FirestoreService } from './firebase/FirestoreService.js';
 import { CommunityController } from './firebase/CommunityController.js';
 
@@ -52,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatConnectOverlay = document.getElementById('chat-connect-overlay');
   const chatConnectOpenBtn = document.getElementById('chat-connect-open-btn');
   const chatConnectCloseBtn = document.getElementById('chat-connect-close-btn');
-  const youtubeApiKeyInput = document.getElementById('youtube-api-key-input');
   let lastSupportButton = null;
 
   const readLocalSetting = (key) => {
@@ -150,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-platform-input]').forEach((input) => {
     input.value = readLocalSetting(`ai-troll-lab:${input.dataset.platformInput}:stream`);
   });
-  youtubeApiKeyInput.value = readLocalSetting('ai-troll-lab:youtube:api-key') || YOUTUBE_API_KEY;
 
   const closeChatConnectOverlay = () => {
     chatConnectOverlay.classList.add('hidden');
@@ -172,11 +169,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const input = document.querySelector(`[data-platform-input="${platform}"]`);
       const streamValue = input.value.trim();
       saveLocalSetting(`ai-troll-lab:${platform}:stream`, streamValue);
-      if (platform === 'youtube') {
-        saveLocalSetting('ai-troll-lab:youtube:api-key', youtubeApiKeyInput.value.trim());
-      }
       button.disabled = true;
-      await platformChat.connect(platform, streamValue, { youtubeApiKey: youtubeApiKeyInput.value });
+      await platformChat.connect(platform, streamValue);
       button.disabled = false;
     });
   });
