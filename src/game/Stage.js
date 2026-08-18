@@ -140,6 +140,34 @@ export class Stage {
       this.hazards.push({ x: 300, y: 140, width: 15, height: 160, type: 'laser' });
       this.hazards.push({ x: 600, y: 140, width: 15, height: 160, type: 'laser' });
     }
+
+    this.createDataCores();
+    this.goalCube.locked = true;
+  }
+
+  createDataCores() {
+    // Skip the first playable platform so a core is never collected at spawn for free.
+    const candidates = this.platforms.filter((platform, index) => index > 1 && platform.width >= 60);
+    const picks = candidates.length <= 3
+      ? candidates
+      : [candidates[0], candidates[Math.floor((candidates.length - 1) / 2)], candidates[candidates.length - 1]];
+
+    this.dataCores = picks.map((platform, index) => {
+      const offsetX = Math.max(8, Math.min(platform.width - 26, platform.width * (index % 2 ? 0.65 : 0.3)));
+      return {
+        platform,
+        offsetX,
+        x: platform.x + offsetX,
+        y: platform.y - 34,
+        width: 20,
+        height: 20,
+        collected: false
+      };
+    });
+  }
+
+  setGoalLocked(locked) {
+    this.goalCube.locked = Boolean(locked);
   }
 
   update(dt) {
@@ -151,6 +179,11 @@ export class Stage {
           p.vx *= -1;
         }
       }
+    }
+
+    for (const core of this.dataCores || []) {
+      core.x = core.platform.x + core.offsetX;
+      core.y = core.platform.y - 34;
     }
   }
 
@@ -204,10 +237,27 @@ export class Stage {
       ctx.restore();
     }
 
+    for (const core of this.dataCores || []) {
+      if (core.collected) continue;
+      const pulse = 1 + Math.sin(performance.now() / 140 + core.x) * 0.12;
+      ctx.save();
+      ctx.translate(core.x + core.width / 2, core.y + core.height / 2);
+      ctx.rotate(Math.PI / 4);
+      ctx.scale(pulse, pulse);
+      ctx.fillStyle = '#ffcf33';
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = '#ffcf33';
+      ctx.fillRect(-7, -7, 14, 14);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-3, -3, 6, 6);
+      ctx.restore();
+    }
+
     ctx.save();
-    ctx.fillStyle = '#bd00ff';
+    ctx.globalAlpha = this.goalCube.locked ? 0.42 : 1;
+    ctx.fillStyle = this.goalCube.locked ? '#ff2a5f' : '#bd00ff';
     ctx.shadowBlur = 16;
-    ctx.shadowColor = '#bd00ff';
+    ctx.shadowColor = this.goalCube.locked ? '#ff2a5f' : '#bd00ff';
     ctx.fillRect(this.goalCube.x, this.goalCube.y, this.goalCube.width, this.goalCube.height);
 
     ctx.fillStyle = '#ffffff';
@@ -217,6 +267,13 @@ export class Stage {
       this.goalCube.width - 16,
       this.goalCube.height - 16
     );
+    if (this.goalCube.locked) {
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('LOCK', this.goalCube.x + this.goalCube.width / 2, this.goalCube.y - 7);
+    }
     ctx.restore();
   }
 }

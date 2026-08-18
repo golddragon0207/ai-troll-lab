@@ -75,7 +75,7 @@
         <div id="start-overlay" class="game-overlay active">
           <div class="overlay-card glass-panel">
             <h1 class="glow-title">🤖 AI TROLL LAB</h1>
-            <p class="hero-desc">유튜버 멘탈 파괴 특화! 억까 AI의 텔레포트를 0.5초 피지컬 대시와 패링으로 깨부숴라!</p>
+            <p class="hero-desc">데이터 코어를 훔치고 콤보를 이어 AI 보스를 박살내는 고속 액션 로그라이트!</p>
             
             <div class="controls-guide">
               <div class="guide-item">
@@ -84,16 +84,16 @@
               </div>
               <div class="guide-item">
                 <span class="key">SHIFT</span>
-                <span class="desc">0.5초 피지컬 대시 (텔레포트 피하기)</span>
+                <span class="desc">고속 대시 (공격 회피·반격)</span>
               </div>
               <div class="guide-item">
                 <span class="key">SPACE</span>
-                <span class="desc">억까 패링 (스킬 반사)</span>
+                <span class="desc">AI 공격 패링 (보스 보호막 파괴)</span>
               </div>
             </div>
 
             <div class="tip-box">
-              💡 <strong>스트리머 팁:</strong> 붉은 예고 스파크가 튀면 즉시 SHIFT 대시나 SPACE 패링으로 반격하세요!
+              💡 <strong>플레이 팁:</strong> 코어 3개를 모아 출구를 열고, 공격을 패링해 콤보와 보스 보호막을 동시에 공략하세요!
             </div>
 
             <label class="difficulty-control" for="difficulty-select">
@@ -119,12 +119,16 @@
                 <div id="stat-stage" class="stat-value">Stage 3</div>
               </div>
               <div class="stat-box">
-                <div class="stat-label">성공한 대시 피하기</div>
+                <div class="stat-label">성공한 반격</div>
                 <div id="stat-dashes" class="stat-value">5회</div>
               </div>
               <div class="stat-box">
                 <div class="stat-label">AI 과열 야기 횟수</div>
                 <div id="stat-cooldowns" class="stat-value">2회</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">최고 연속 액션</div>
+                <div id="stat-combo" class="stat-value">0 COMBO</div>
               </div>
               <div class="stat-box">
                 <div class="stat-label">최종 점수</div>
@@ -144,6 +148,15 @@
               <p id="score-submit-status" aria-live="polite"></p>
             </form>
             <button id="restart-btn" class="primary-btn glow-btn">🔄 다시 도전하기 (RETRY)</button>
+          </div>
+        </div>
+
+        <div id="upgrade-overlay" class="game-overlay hidden" aria-live="polite">
+          <div class="overlay-card upgrade-card glass-panel">
+            <span class="upgrade-kicker">BUILD UPGRADE</span>
+            <h2 class="result-title">AI 코드를 하나 훔쳐라</h2>
+            <p class="result-desc">이번 런에 영구 적용됩니다.</p>
+            <div id="upgrade-choices" class="upgrade-choices"></div>
           </div>
         </div>
 
@@ -205,7 +218,7 @@
         <div class="chat-panel glass-panel">
           <div class="chat-header">
             <span>🗳️ 실시간 시청자 투표</span>
-            <span id="vote-timer" class="viewer-count">20s</span>
+            <span id="vote-timer" class="viewer-count">40s</span>
           </div>
           <div class="audience-connection-row">
             <span id="audience-status">게임 시작 대기 중</span>
@@ -213,16 +226,16 @@
           </div>
           <div class="vote-grid" aria-label="시청자 투표 현황">
             <div class="vote-option vote-help" data-vote-option="heal">
-              <span><b>!회복</b> +15</span><strong class="vote-count">0</strong><i class="vote-fill"></i>
+              <span><b>!회복</b> +10</span><strong class="vote-count">0</strong><i class="vote-fill"></i>
             </div>
             <div class="vote-option vote-help" data-vote-option="overheat">
-              <span><b>!과열</b> +40</span><strong class="vote-count">0</strong><i class="vote-fill"></i>
+              <span><b>!과열</b> +20</span><strong class="vote-count">0</strong><i class="vote-fill"></i>
             </div>
             <div class="vote-option vote-troll" data-vote-option="warp">
-              <span><b>!워프</b> 골인 이동</span><strong class="vote-count">0</strong><i class="vote-fill"></i>
+              <span><b>!워프</b> 코어 혼돈</span><strong class="vote-count">0</strong><i class="vote-fill"></i>
             </div>
             <div class="vote-option vote-troll" data-vote-option="shock">
-              <span><b>!충격</b> -10</span><strong class="vote-count">0</strong><i class="vote-fill"></i>
+              <span><b>!충격</b> 콤보 파괴</span><strong class="vote-count">0</strong><i class="vote-fill"></i>
             </div>
           </div>
           <div id="chat-messages" class="chat-messages">
@@ -291,8 +304,7 @@
     <footer class="broadcast-footer">
       <div class="footer-left">
         <span class="keyboard-badge">⌨️ WASD/방향키: 이동</span>
-        <span class="keyboard-badge">SHIFT: 0.5초 피지컬 대시</span>
-        <span class="keyboard-badge">SPACE: 억까 패링</span>
+        <span class="keyboard-badge">SHIFT: 대시 · SPACE: 패링</span>
       </div>
       <div class="footer-right">
         <span class="copyright">AI TROLL LAB v1.0 • Streamer Edition</span>

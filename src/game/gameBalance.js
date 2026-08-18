@@ -56,12 +56,14 @@ export function calculateScore({
   overheats = 0,
   result = 'gameover',
   playTimeSec = 1,
-  difficulty = 'challenge'
+  difficulty = 'challenge',
+  bonusScore = 0
 } = {}) {
   const cleared = result === 'clear';
   const clearBonus = cleared ? 50000 : 0;
   const speedBonus = cleared ? Math.max(0, 20000 - playTimeSec * 30) : 0;
-  const baseScore = stage * 10000 + dashes * 800 + overheats * 1200 + clearBonus + speedBonus;
+  const baseScore = stage * 10000 + dashes * 800 + overheats * 1200 + clearBonus + speedBonus
+    + Math.max(0, Number(bonusScore) || 0);
   const { scoreMultiplier } = getDifficultyBalance(stage, difficulty);
   return Math.min(999999, Math.max(0, Math.round(baseScore * scoreMultiplier)));
 }

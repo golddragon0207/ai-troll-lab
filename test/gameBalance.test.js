@@ -42,3 +42,11 @@ test('score is always kept within the Firestore rule range', () => {
     difficulty: 'nightmare'
   }), 999999);
 });
+
+test('core and combo bonus score is included without changing result schema', () => {
+  const run = { stage: 3, dashes: 2, result: 'gameover', playTimeSec: 60 };
+  assert.equal(
+    calculateScore({ ...run, bonusScore: 2500 }),
+    calculateScore(run) + 2500
+  );
+});

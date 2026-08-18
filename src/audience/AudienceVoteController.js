@@ -1,10 +1,10 @@
 import { CHAT_PROXY_URL } from './platformConfig.js';
 
 const VOTE_OPTIONS = [
-  { command: '!회복', effect: 'heal', label: '멘탈 +15', tone: 'help' },
-  { command: '!과열', effect: 'overheat', label: 'AI 과열 +40', tone: 'help' },
-  { command: '!워프', effect: 'warp', label: '골인 큐브 워프', tone: 'troll' },
-  { command: '!충격', effect: 'shock', label: '멘탈 -10', tone: 'troll' }
+  { command: '!회복', effect: 'heal', label: '멘탈 +10', tone: 'help' },
+  { command: '!과열', effect: 'overheat', label: 'AI 과열 +20', tone: 'help' },
+  { command: '!워프', effect: 'warp', label: '코어 혼돈', tone: 'troll' },
+  { command: '!충격', effect: 'shock', label: '콤보 파괴', tone: 'troll' }
 ];
 
 const PLATFORM_LABELS = {
@@ -21,7 +21,7 @@ export function findVoteOption(message) {
 }
 
 export class AudienceVoteController {
-  constructor(engine, hud, { roundDuration = 20 } = {}) {
+  constructor(engine, hud, { roundDuration = 40 } = {}) {
     this.engine = engine;
     this.hud = hud;
     this.roundDuration = roundDuration;

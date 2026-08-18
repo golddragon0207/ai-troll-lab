@@ -53,6 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatConnectOpenBtn = document.getElementById('chat-connect-open-btn');
   const chatConnectCloseBtn = document.getElementById('chat-connect-close-btn');
   const difficultySelect = document.getElementById('difficulty-select');
+  const upgradeOverlay = document.getElementById('upgrade-overlay');
+  const upgradeChoices = document.getElementById('upgrade-choices');
   let lastSupportButton = null;
 
   const readLocalSetting = (key) => {
@@ -213,6 +215,32 @@ document.addEventListener('DOMContentLoaded', () => {
     engine.start();
     community.resetResult();
     audienceVoting.start();
+  });
+
+  window.addEventListener('upgrade-request', (event) => {
+    upgradeChoices.replaceChildren();
+    for (const choice of event.detail.choices) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'upgrade-option';
+
+      const icon = document.createElement('span');
+      icon.className = 'upgrade-icon';
+      icon.textContent = choice.icon;
+      const name = document.createElement('strong');
+      name.textContent = choice.name;
+      const description = document.createElement('span');
+      description.textContent = choice.description;
+      button.append(icon, name, description);
+      button.addEventListener('click', () => engine.chooseUpgrade(choice.id));
+      upgradeChoices.appendChild(button);
+    }
+    upgradeOverlay.classList.remove('hidden');
+    upgradeChoices.querySelector('button')?.focus();
+  });
+
+  window.addEventListener('upgrade-selected', () => {
+    upgradeOverlay.classList.add('hidden');
   });
 
   window.addEventListener('game-result', (event) => community.setResult(event.detail));

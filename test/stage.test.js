@@ -12,6 +12,9 @@ test('all ten stages have a spawn, goal, floor and playable platforms', () => {
     assert.ok(stage.spawnPoint.x >= 0 && stage.spawnPoint.x < 960, `stage ${number} spawn x`);
     assert.ok(stage.goalCube.x >= 0 && stage.goalCube.x + stage.goalCube.width <= 960, `stage ${number} goal x`);
     assert.ok(stage.goalCube.y >= 0 && stage.goalCube.y + stage.goalCube.height <= 600, `stage ${number} goal y`);
+    assert.equal(stage.dataCores.length, 3, `stage ${number} core count`);
+    assert.ok(stage.dataCores.every((core) => core.x >= 0 && core.x < 960), `stage ${number} core bounds`);
+    assert.equal(stage.goalCube.locked, true, `stage ${number} starts locked`);
   }
 });
 test('goal relocation always lands above a non-spring platform', () => {
