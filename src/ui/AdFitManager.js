@@ -6,7 +6,7 @@ const SLOT_LABELS = Object.freeze({
   feedback: '건의사항'
 });
 
-const ADFIT_SCRIPT_URL = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+const ADFIT_SCRIPT_URL = 'https://t1.kakaocdn.net/kas/static/ba.min.js';
 
 function renderPlaceholder(container, type) {
   const placeholder = document.createElement('div');
