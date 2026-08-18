@@ -2,6 +2,7 @@ import { Player } from './Player.js';
 import { AIBully } from './AIBully.js';
 import { Stage } from './Stage.js';
 import { ParticleSystem } from './Particle.js';
+import { calculateScore, getDifficultyBalance, normalizeDifficulty } from './gameBalance.js';
 
 export class Engine {
   constructor(canvas, hud, audio) {
@@ -25,7 +26,8 @@ export class Engine {
       },
       onTeleport: (stageNum) => {
         const missDamage = Math.min(30, 12 + (stageNum - 1) * 2);
-        this.takeMentalDamage(missDamage, 'AI_TELEPORT');
+        const balance = getDifficultyBalance(stageNum, this.difficulty);
+        this.takeMentalDamage(Math.round(missDamage * balance.damageMultiplier), 'AI_TELEPORT');
       }
     });
     this.stage = new Stage();
@@ -46,6 +48,7 @@ export class Engine {
     this.successfulDashesCount = 0;
     this.aiOverheatCount = 0;
     this.runStartedAt = 0;
+    this.difficulty = 'challenge';
 
     // Screen Shake & Camera FX
     this.shakeDuration = 0;
@@ -109,7 +112,7 @@ export class Engine {
     this.stop();
     this.resizeCanvas();
     this.stage.loadStage(1);
-    this.ai.setDifficulty(1);
+    this.ai.setDifficulty(1, this.difficulty);
     this.player.reset(this.stage.spawnPoint.x, this.stage.spawnPoint.y);
     this.ai.reset();
     this.particles.clear();
@@ -129,6 +132,10 @@ export class Engine {
     this.lastTimestamp = null;
     this.accumulator = 0;
     this.animationId = requestAnimationFrame(this.boundLoop);
+  }
+
+  setDifficulty(value) {
+    this.difficulty = normalizeDifficulty(value);
   }
 
   stop() {
@@ -210,7 +217,7 @@ export class Engine {
     if (this.stage.currentStageNum < this.stage.totalStages) {
       const nextNum = this.stage.currentStageNum + 1;
       this.stage.loadStage(nextNum);
-      this.ai.setDifficulty(nextNum);
+      this.ai.setDifficulty(nextNum, this.difficulty);
       this.player.reset(this.stage.spawnPoint.x, this.stage.spawnPoint.y);
       this.hud.updateStageDisplay(nextNum, this.stage.totalStages);
       this.hud.setAIDialogue(`Stage ${nextNum} 도착! 난이도가 더 매워진다 🤖`);
@@ -256,15 +263,14 @@ export class Engine {
     const minutes = Math.floor(playTimeSec / 60);
     const seconds = String(playTimeSec % 60).padStart(2, '0');
     const playTimeStr = `${minutes}:${seconds}`;
-    const clearBonus = result === 'clear' ? 50000 : 0;
-    const speedBonus = result === 'clear' ? Math.max(0, 20000 - playTimeSec * 30) : 0;
-    const score = Math.min(999999, Math.max(0, Math.round(
-      stage * 10000
-      + this.successfulDashesCount * 800
-      + this.aiOverheatCount * 1200
-      + clearBonus
-      + speedBonus
-    )));
+    const score = calculateScore({
+      stage,
+      dashes: this.successfulDashesCount,
+      overheats: this.aiOverheatCount,
+      result,
+      playTimeSec,
+      difficulty: this.difficulty
+    });
 
     document.getElementById('stat-stage').textContent = `Stage ${stage}`;
     document.getElementById('stat-dashes').textContent = `${this.successfulDashesCount}회`;
@@ -279,7 +285,8 @@ export class Engine {
       overheats: this.aiOverheatCount,
       result,
       playTimeSec,
-      playTimeStr
+      playTimeStr,
+      difficulty: this.difficulty
     };
   }
 

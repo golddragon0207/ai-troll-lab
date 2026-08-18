@@ -47,6 +47,7 @@ export class FirestoreService {
       result: result.result === 'clear' ? 'clear' : 'gameover',
       playTimeSec: Number(result.playTimeSec),
       playTimeStr: cleanText(result.playTimeStr, 16),
+      difficulty: result.difficulty === 'nightmare' ? 'nightmare' : 'challenge',
       createdAt: serverTimestamp()
     });
   }

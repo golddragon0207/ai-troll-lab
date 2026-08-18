@@ -1,3 +1,5 @@
+import { getDifficultyBalance } from './gameBalance.js';
+
 export class AIBully {
   constructor(hud, audioEngine, particleSystem, events = {}) {
     this.hud = hud;
@@ -59,14 +61,12 @@ export class AIBully {
     this.hud.updateAIHeat(0, false);
   }
 
-  setDifficulty(stageNum = 1) {
+  setDifficulty(stageNum = 1, difficulty = 'challenge') {
     this.currentStage = Math.max(1, Number(stageNum) || 1);
-    const stageOffset = this.currentStage - 1;
-
-    // 초반에는 패턴을 읽을 시간을 주고, 후반으로 갈수록 반응 창과 휴식 시간을 줄인다.
-    this.telegraphDuration = Math.max(0.28, 0.52 - stageOffset * 0.025);
-    this.attackRadius = Math.min(165, 125 + stageOffset * 4);
-    this.maxOverheatDuration = Math.max(2, 3 - stageOffset * 0.1);
+    const balance = getDifficultyBalance(this.currentStage, difficulty);
+    this.telegraphDuration = balance.telegraphDuration;
+    this.attackRadius = balance.attackRadius;
+    this.maxOverheatDuration = balance.overheatDuration;
   }
 
   update(dt, player, goalCube, stage) {

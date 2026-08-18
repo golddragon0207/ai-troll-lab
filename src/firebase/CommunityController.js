@@ -14,6 +14,7 @@ export class CommunityController {
     this.resultNickname = document.getElementById('score-nickname');
     this.resultStatus = document.getElementById('score-submit-status');
     this.resultSubmit = document.getElementById('score-submit-btn');
+    this.lastSuggestionAt = 0;
 
     this.resultNickname.value = this.readNickname();
     this.resultForm.addEventListener('submit', (event) => this.submitResult(event));
@@ -78,6 +79,7 @@ export class CommunityController {
           <span class="leaderboard-rank">${index + 1}</span>
           <strong>${escapeHtml(entry.nickname)}</strong>
           <span>STAGE ${Number(entry.stage) || 1}</span>
+          <span>${entry.difficulty === 'nightmare' ? '지옥' : '도전'}</span>
           <b>${Number(entry.score || 0).toLocaleString('ko-KR')}점</b>
         </li>`).join('')}</ol>`;
     } catch (error) {
@@ -96,6 +98,11 @@ export class CommunityController {
     const form = this.body.querySelector('#suggestion-form');
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
+      const now = Date.now();
+      if (now - this.lastSuggestionAt < 30000) {
+        form.querySelector('#suggestion-status').textContent = '건의사항은 30초에 한 번 전송할 수 있습니다.';
+        return;
+      }
       const button = form.querySelector('button');
       const status = form.querySelector('#suggestion-status');
       const nickname = form.querySelector('#suggestion-nickname').value.trim();
@@ -104,6 +111,7 @@ export class CommunityController {
       status.textContent = '전송 중…';
       try {
         await this.service.submitSuggestion(nickname, text);
+        this.lastSuggestionAt = Date.now();
         if (nickname) this.saveNickname(nickname);
         form.reset();
         status.textContent = '건의사항이 전송되었습니다. 감사합니다! 💡';

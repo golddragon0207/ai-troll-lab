@@ -6,6 +6,7 @@ import { AudienceVoteController } from './audience/AudienceVoteController.js';
 import { PlatformChatConnector } from './audience/PlatformChatConnector.js';
 import { FirestoreService } from './firebase/FirestoreService.js';
 import { CommunityController } from './firebase/CommunityController.js';
+import { DONATION_URL } from './config/runtimeConfig.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const DESIGN_WIDTH = 1280;
@@ -51,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatConnectOverlay = document.getElementById('chat-connect-overlay');
   const chatConnectOpenBtn = document.getElementById('chat-connect-open-btn');
   const chatConnectCloseBtn = document.getElementById('chat-connect-close-btn');
+  const difficultySelect = document.getElementById('difficulty-select');
   let lastSupportButton = null;
 
   const readLocalSetting = (key) => {
@@ -80,9 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
     donate: {
       kicker: 'SUPPORT',
       title: '후원하기',
-      description: 'AI Troll Lab의 새로운 스테이지와 방송용 기능 개발을 응원하는 후원 페이지를 준비 중입니다.',
+      description: DONATION_URL
+        ? 'AI Troll Lab의 새로운 스테이지와 방송용 기능 개발을 응원해 주세요.'
+        : '후원 페이지 주소가 등록되면 이곳에서 바로 연결됩니다.',
       actionLabel: '후원 페이지 열기',
-      url: ''
+      url: DONATION_URL
     }
   };
 
@@ -195,6 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start Game
   startBtn.addEventListener('click', () => {
     audioEngine.init();
+    engine.setDifficulty(difficultySelect?.value);
     startOverlay.classList.add('hidden');
     engine.start();
     community.resetResult();
@@ -204,6 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Restart Game
   restartBtn.addEventListener('click', () => {
     resultOverlay.classList.add('hidden');
+    engine.setDifficulty(difficultySelect?.value);
     engine.start();
     community.resetResult();
     audienceVoting.start();

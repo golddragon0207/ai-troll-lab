@@ -29,6 +29,9 @@
 6. **🏆 Firebase 커뮤니티 기능**
    - 플레이 결과 점수를 공개 TOP 10 랭킹에 등록
    - 건의사항은 공개하지 않고 개발자만 Firebase Console에서 확인
+7. **🔥 2단계 방송 난이도**
+   - 기본 `방송용 도전`은 초반부터 기존보다 빠른 AI 반응을 제공
+   - `지옥 방송`은 예고 시간·과열 휴식이 더 짧고 피해량이 높으며 점수 1.25배
 
 ### 실시간 채팅 연동
 
@@ -45,6 +48,8 @@ https://ai-troll-lab-chat-proxy.skkim867.workers.dev/health
 ```
 
 SOOP·치지직은 프로젝트 전용 Cloudflare Worker가 CORS가 없는 공개 채팅 API 요청만 중계합니다. 방송 주소는 사용자의 브라우저 저장소에만 저장됩니다. YouTube 연동은 지속적인 API 폴링과 할당량 소모를 피하기 위해 제공하지 않습니다.
+
+Worker 원본은 [`worker/chat-proxy.js`](./worker/chat-proxy.js), 배포 설정은 [`wrangler.toml`](./wrangler.toml)에 보관합니다. 허용 대상 호스트와 GitHub Pages Origin을 제한하며, 요청 본문 크기와 외부 리다이렉트도 차단합니다.
 
 개발 중에는 브라우저 이벤트로도 동일한 입력을 테스트할 수 있습니다.
 
@@ -69,7 +74,7 @@ window.dispatchEvent(new CustomEvent('audience-chat', {
 
 ## ⚡ 억까 파회 & 레벨 구조 (10 Stages)
 
-- **스테이지별 붉은 예고**: 골인 큐브에 접근하면 0.52~0.30초 예고 스파크 발동 ➔ 후반으로 갈수록 반응 시간이 짧아집니다.
+- **스테이지별 붉은 예고**: 골인 큐브에 접근하면 선택 난이도와 스테이지에 따라 0.44~0.16초 예고 스파크 발동 ➔ 후반으로 갈수록 반응 시간이 짧아집니다.
 - **목표 잠금**: AI 경고 중에는 큐브를 먼저 밟아도 클리어되지 않으며, `SHIFT` 대시 또는 `SPACE` 패링으로 반격해야 확보할 수 있습니다.
 - **실패 페널티**: 텔레포트 경고를 놓치면 스테이지에 따라 멘탈 HP가 12~30 감소합니다.
 - **AI 과열 (Bully Overheat)**: AI가 억까 스킬을 연속 시전하면 과열 상태에 빠져 잠시 억까를 멈춥니다. 후반으로 갈수록 휴식 시간이 짧아집니다.
@@ -134,15 +139,39 @@ npm install
 
 # 3. 로컬 키 설정 (.env.local, 커밋 금지)
 VITE_FIREBASE_API_KEY=Firebase_Web_API_키
+VITE_DONATION_URL=
+VITE_ADFIT_LEADERBOARD_UNIT=
+VITE_ADFIT_DONATE_UNIT=
+VITE_ADFIT_FEEDBACK_UNIT=
 
-# 4. 개발 서버 실행
+# 4. 자동 테스트
+npm test
+
+# 5. 개발 서버 실행
 npm run dev
 
-# 5. 프로덕션 빌드
+# 6. 프로덕션 빌드
 npm run build
 ```
 
-배포 시 Firebase 키는 GitHub Actions Repository Secret의 `FIREBASE_API_KEY`에서 빌드 환경으로 주입합니다. Firestore 접근 권한은 [firestore.rules](./firestore.rules)에서 랭킹 공개 조회·검증된 신규 등록과 비공개 건의 등록만 허용합니다.
+배포 시 Firebase 키는 GitHub Actions Repository Secret의 `FIREBASE_API_KEY`에서 주입합니다. 후원 주소와 애드핏 단위는 GitHub Actions Repository Variables의 `DONATION_URL`, `ADFIT_LEADERBOARD_UNIT`, `ADFIT_DONATE_UNIT`, `ADFIT_FEEDBACK_UNIT`에 등록하면 코드 수정 없이 활성화됩니다.
+
+Firestore 접근 권한은 [firestore.rules](./firestore.rules)에서 랭킹 공개 조회·검증된 신규 등록과 비공개 건의 등록만 허용합니다. 클라이언트 단독 게임 특성상 고의적인 점수 위조를 완전히 차단하는 경쟁형 랭킹은 아니며, 방송 커뮤니티용 캐주얼 랭킹으로 운영합니다.
+
+### Worker 재배포
+
+```bash
+npx wrangler login
+npx wrangler deploy
+```
+
+### 공개 전 운영 확인
+
+- `npm test`와 `npm run build` 성공
+- Worker `/health` 응답 확인
+- 방송 중인 SOOP·치지직 채널에서 각각 실제 메시지 1회 수신 확인
+- 애드핏 매체 승인 후 발급된 광고 단위를 Repository Variables에 등록
+- 실제 후원 페이지가 결정되면 `DONATION_URL` 등록
 
 ---
 

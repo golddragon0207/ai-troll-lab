@@ -1,0 +1,4 @@
+name = "ai-troll-lab-chat-proxy"
+main = "worker/chat-proxy.js"
+compatibility_date = "2026-08-18"
+workers_dev = true

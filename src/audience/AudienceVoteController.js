@@ -13,6 +13,13 @@ const PLATFORM_LABELS = {
   test: 'TEST'
 };
 
+export function findVoteOption(message) {
+  const normalized = String(message || '').trim().replace(/\s+/g, ' ');
+  return VOTE_OPTIONS.find(({ command }) => (
+    new RegExp(`(^|\\s)${command}(?=\\s|$)`, 'i').test(normalized)
+  ));
+}
+
 export class AudienceVoteController {
   constructor(engine, hud, { roundDuration = 20 } = {}) {
     this.engine = engine;
@@ -116,10 +123,7 @@ export class AudienceVoteController {
   }
 
   findOption(message) {
-    const normalized = message.replace(/\s+/g, ' ');
-    return VOTE_OPTIONS.find(({ command }) => (
-      new RegExp(`(^|\\s)${command}(?=\\s|$)`, 'i').test(normalized)
-    ));
+    return findVoteOption(message);
   }
 
   finishRound() {

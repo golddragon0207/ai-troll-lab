@@ -32,10 +32,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run automated tests
+        run: npm test
+
       - name: Build project
         run: npm run build
         env:
           VITE_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          VITE_DONATION_URL: ${{ vars.DONATION_URL }}
+          VITE_ADFIT_LEADERBOARD_UNIT: ${{ vars.ADFIT_LEADERBOARD_UNIT }}
+          VITE_ADFIT_DONATE_UNIT: ${{ vars.ADFIT_DONATE_UNIT }}
+          VITE_ADFIT_FEEDBACK_UNIT: ${{ vars.ADFIT_FEEDBACK_UNIT }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
