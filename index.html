@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Bully Lab (AI의 킹받는 텔레포트 실험실) - Streamer Arcade</title>
+  <title>AI Troll Lab (AI 장난질 실험실) - Streamer Arcade</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Pretendard:wght@400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -18,7 +18,7 @@
       <div class="header-left">
         <div class="live-badge"><span class="blink-dot"></span> LIVE</div>
         <div class="stream-title">
-          <span class="game-logo">🤖 AI BULLY LAB</span>
+          <span class="game-logo">🤖 AI TROLL LAB</span>
           <span class="sub-tag">EP.01 스트리머 vs 억까 AI</span>
         </div>
       </div>
@@ -28,7 +28,7 @@
             <span class="ai-icon">🤖</span>
             <div class="ai-name">AI MASTER "BULLY"</div>
           </div>
-          <div id="ai-dialogue-banner" class="ai-dialogue-banner">
+          <div id="ai-dialogue-banner" class="ai-dialogue-banner" aria-live="polite">
             "어서와라 자칭 천재 스트리머. 텔레포트 맛좀 볼래?"
           </div>
         </div>
@@ -38,7 +38,23 @@
           <span class="stage-label">STAGE</span>
           <span id="current-stage-num" class="stage-num">01 / 10</span>
         </div>
-        <button id="sound-toggle-btn" class="icon-btn" title="사운드 토글">🔊</button>
+        <nav class="quick-controls" aria-label="방송 퀵컨트롤">
+          <button class="quick-control-btn quick-control-leaderboard" type="button" data-support="leaderboard" title="명예의 전당">
+            <span class="quick-control-icon">🏆</span><span>명예의 전당</span>
+          </button>
+          <button class="quick-control-btn quick-control-donate" type="button" data-support="donate" title="개발자 후원">
+            <span class="quick-control-icon">☕</span><span>후원하기</span>
+          </button>
+          <button class="quick-control-btn quick-control-feedback" type="button" data-support="feedback" title="건의사항">
+            <span class="quick-control-icon">💡</span><span>건의사항</span>
+          </button>
+          <button id="obs-toggle-btn" class="quick-control-btn" type="button" aria-pressed="false" title="OBS 투명 모드: OFF">
+            <span class="quick-control-icon">📺</span><span id="obs-toggle-label">OBS OFF</span>
+          </button>
+          <button id="sound-toggle-btn" class="quick-control-btn active" type="button" aria-pressed="true" title="사운드: ON">
+            <span id="sound-toggle-icon" class="quick-control-icon">🔊</span><span id="sound-toggle-label">사운드 ON</span>
+          </button>
+        </nav>
       </div>
     </header>
 
@@ -58,7 +74,7 @@
         <!-- Start / Pause Game Overlay -->
         <div id="start-overlay" class="game-overlay active">
           <div class="overlay-card glass-panel">
-            <h1 class="glow-title">🤖 AI BULLY LAB</h1>
+            <h1 class="glow-title">🤖 AI TROLL LAB</h1>
             <p class="hero-desc">유튜버 멘탈 파괴 특화! 억까 AI의 텔레포트를 0.5초 피지컬 대시와 패링으로 깨부숴라!</p>
             
             <div class="controls-guide">
@@ -116,7 +132,7 @@
         <div class="webcam-box glass-panel">
           <div class="webcam-header">
             <span class="webcam-tag">📷 STREAMER CAM</span>
-            <button id="cam-toggle-btn" class="cam-btn">웹캠 켜기</button>
+            <button id="cam-toggle-btn" class="cam-btn" aria-pressed="false">웹캠 켜기</button>
           </div>
           <div class="webcam-viewport">
             <video id="webcam-video" autoplay playsinline muted class="webcam-video hidden"></video>
@@ -125,6 +141,7 @@
               <div id="streamer-state" class="streamer-state">멘탈 충전 완료</div>
             </div>
           </div>
+          <p class="webcam-privacy">🔒 영상은 브라우저 안에서만 표시되며 외부로 전송되지 않습니다.</p>
         </div>
 
         <!-- Streamer Mental HP & Rage Gauge -->
@@ -160,24 +177,100 @@
           </div>
         </div>
 
-        <!-- Live Viewer Chat Simulator -->
+        <!-- Cross-platform viewer vote and chat -->
         <div class="chat-panel glass-panel">
           <div class="chat-header">
-            <span>💬 실시간 시청자 챗</span>
-            <span class="viewer-count">👁️ 14,290명</span>
+            <span>🗳️ 실시간 시청자 투표</span>
+            <span id="vote-timer" class="viewer-count">20s</span>
+          </div>
+          <div class="audience-connection-row">
+            <span id="audience-status">게임 시작 대기 중</span>
+            <span><span id="vote-total">0명 참여</span> · <button id="chat-connect-open-btn" class="inline-connect-btn" type="button">실방송 연동</button></span>
+          </div>
+          <div class="vote-grid" aria-label="시청자 투표 현황">
+            <div class="vote-option vote-help" data-vote-option="heal">
+              <span><b>!회복</b> +15</span><strong class="vote-count">0</strong><i class="vote-fill"></i>
+            </div>
+            <div class="vote-option vote-help" data-vote-option="overheat">
+              <span><b>!과열</b> +40</span><strong class="vote-count">0</strong><i class="vote-fill"></i>
+            </div>
+            <div class="vote-option vote-troll" data-vote-option="warp">
+              <span><b>!워프</b> 골인 이동</span><strong class="vote-count">0</strong><i class="vote-fill"></i>
+            </div>
+            <div class="vote-option vote-troll" data-vote-option="shock">
+              <span><b>!충격</b> -10</span><strong class="vote-count">0</strong><i class="vote-fill"></i>
+            </div>
           </div>
           <div id="chat-messages" class="chat-messages">
             <!-- Messages inserted dynamically via JS -->
           </div>
-          <div class="chat-input-row">
-            <input type="text" id="chat-fake-input" placeholder="시청자 챗 반응 감상 중..." disabled>
-            <button id="bribe-btn" class="bribe-btn" title="AI에게 뇌물 바치기">🙏 도게자</button>
-          </div>
+          <form id="audience-test-form" class="chat-input-row">
+            <select id="audience-test-platform" aria-label="테스트 플랫폼">
+              <option value="soop">SOOP</option>
+              <option value="chzzk">치지직</option>
+              <option value="youtube">YouTube</option>
+            </select>
+            <input type="text" id="audience-test-input" placeholder="!회복 등 테스트" maxlength="160" autocomplete="off">
+            <button class="vote-send-btn" type="submit">전송</button>
+          </form>
+          <button id="bribe-btn" class="bribe-btn bribe-btn-wide" title="AI에게 뇌물 바치기">🙏 스트리머 도게자</button>
         </div>
 
       </aside>
 
     </main>
+
+    <div id="support-overlay" class="support-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="support-title">
+      <section class="support-card glass-panel">
+        <button id="support-close-btn" class="support-close-btn" type="button" aria-label="안내 창 닫기">×</button>
+        <span id="support-kicker" class="support-kicker">COMMUNITY</span>
+        <h2 id="support-title" class="support-title">건의사항</h2>
+        <p id="support-description" class="support-description"></p>
+        <div id="ad-container-community" class="ad-banner-box" aria-label="카카오 애드핏 광고"></div>
+        <a id="support-action" class="support-action hidden" href="#" target="_blank" rel="noopener noreferrer">바로가기</a>
+      </section>
+    </div>
+
+    <div id="chat-connect-overlay" class="support-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="chat-connect-title">
+      <section class="support-card chat-connect-card glass-panel">
+        <button id="chat-connect-close-btn" class="support-close-btn" type="button" aria-label="채팅 연동 창 닫기">×</button>
+        <span class="support-kicker">LIVE CHAT</span>
+        <h2 id="chat-connect-title" class="support-title">3플랫폼 실방송 연동</h2>
+        <p class="support-description">방송 주소를 입력하면 해당 플랫폼의 채팅 명령이 시청자 투표에 반영됩니다.</p>
+
+        <div class="platform-connect-list">
+          <section class="platform-connect-row" data-platform-row="soop">
+            <div class="platform-connect-heading"><strong>🔵 SOOP</strong><span class="platform-status" data-platform-status="soop">연결 안 됨</span></div>
+            <div class="platform-connect-controls">
+              <input data-platform-input="soop" type="text" placeholder="SOOP 방송국 URL 또는 BJ ID" autocomplete="off">
+              <button data-platform-connect="soop" type="button">연결</button>
+              <button data-platform-disconnect="soop" class="disconnect-btn" type="button">해제</button>
+            </div>
+          </section>
+
+          <section class="platform-connect-row" data-platform-row="chzzk">
+            <div class="platform-connect-heading"><strong>🟢 치지직</strong><span class="platform-status" data-platform-status="chzzk">연결 안 됨</span></div>
+            <div class="platform-connect-controls">
+              <input data-platform-input="chzzk" type="text" placeholder="치지직 방송 URL 또는 32자리 채널 ID" autocomplete="off">
+              <button data-platform-connect="chzzk" type="button">연결</button>
+              <button data-platform-disconnect="chzzk" class="disconnect-btn" type="button">해제</button>
+            </div>
+          </section>
+
+          <section class="platform-connect-row" data-platform-row="youtube">
+            <div class="platform-connect-heading"><strong>🔴 YouTube</strong><span class="platform-status" data-platform-status="youtube">연결 안 됨</span></div>
+            <div class="platform-connect-controls">
+              <input data-platform-input="youtube" type="text" placeholder="YouTube 라이브 URL 또는 영상 ID" autocomplete="off">
+              <button data-platform-connect="youtube" type="button">연결</button>
+              <button data-platform-disconnect="youtube" class="disconnect-btn" type="button">해제</button>
+            </div>
+            <input id="youtube-api-key-input" class="youtube-key-input" type="password" placeholder="YouTube Data API v3 키 (이 브라우저에만 저장)" autocomplete="off">
+          </section>
+        </div>
+
+        <p class="chat-connect-note">SOOP·치지직은 AI Troll Lab 전용 Worker를 사용합니다. YouTube 키는 저장소에 포함되지 않습니다.</p>
+      </section>
+    </div>
 
     <!-- Bottom Status Bar -->
     <footer class="broadcast-footer">
@@ -187,7 +280,7 @@
         <span class="keyboard-badge">SPACE: 억까 패링</span>
       </div>
       <div class="footer-right">
-        <span class="copyright">AI BULLY LAB v1.0 • Streamer Edition</span>
+        <span class="copyright">AI TROLL LAB v1.0 • Streamer Edition</span>
       </div>
     </footer>
 

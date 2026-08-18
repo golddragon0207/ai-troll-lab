@@ -142,10 +142,11 @@ export class Stage {
     }
   }
 
-  update() {
+  update(dt) {
+    const frameFactor = dt * 60;
     for (let p of this.platforms) {
       if (p.type === 'moving') {
-        p.x += p.vx;
+        p.x += p.vx * frameFactor;
         if (p.x < p.minX || p.x + p.width > p.maxX) {
           p.vx *= -1;
         }

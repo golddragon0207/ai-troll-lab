@@ -1,12 +1,29 @@
 import { Engine } from './game/Engine.js';
 import { BroadcastHUD } from './ui/BroadcastHUD.js';
 import { AudioEngine } from './ui/AudioEngine.js';
+import { refreshAdfitSlot } from './ui/AdFitManager.js';
+import { AudienceVoteController } from './audience/AudienceVoteController.js';
+import { PlatformChatConnector } from './audience/PlatformChatConnector.js';
+import { YOUTUBE_API_KEY } from './audience/platformConfig.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+  const DESIGN_WIDTH = 1280;
+  const DESIGN_HEIGHT = 720;
   const canvas = document.getElementById('game-canvas');
   const audioEngine = new AudioEngine();
   const hud = new BroadcastHUD(audioEngine);
   const engine = new Engine(canvas, hud, audioEngine);
+  const audienceVoting = new AudienceVoteController(engine, hud);
+  const platformChat = new PlatformChatConnector({
+    onMessage: (detail) => window.dispatchEvent(new CustomEvent('audience-chat', { detail })),
+    onStatus: ({ platform, status, message }) => {
+      const row = document.querySelector(`[data-platform-row="${platform}"]`);
+      const statusEl = document.querySelector(`[data-platform-status="${platform}"]`);
+      if (row) row.dataset.status = status;
+      if (statusEl) statusEl.textContent = message;
+      if (status === 'connected') audienceVoting.setStatus(`${platform.toUpperCase()} 실방송 채팅 연결됨`);
+    }
+  });
 
   // Buttons
   const startBtn = document.getElementById('start-btn');
@@ -14,48 +31,231 @@ document.addEventListener('DOMContentLoaded', () => {
   const startOverlay = document.getElementById('start-overlay');
   const resultOverlay = document.getElementById('result-overlay');
   const soundToggleBtn = document.getElementById('sound-toggle-btn');
+  const soundToggleIcon = document.getElementById('sound-toggle-icon');
+  const soundToggleLabel = document.getElementById('sound-toggle-label');
+  const obsToggleBtn = document.getElementById('obs-toggle-btn');
+  const obsToggleLabel = document.getElementById('obs-toggle-label');
   const camToggleBtn = document.getElementById('cam-toggle-btn');
   const webcamVideo = document.getElementById('webcam-video');
   const avatarFallback = document.getElementById('avatar-fallback');
+  const streamerState = document.getElementById('streamer-state');
+  const supportOverlay = document.getElementById('support-overlay');
+  const supportCloseBtn = document.getElementById('support-close-btn');
+  const supportKicker = document.getElementById('support-kicker');
+  const supportTitle = document.getElementById('support-title');
+  const supportDescription = document.getElementById('support-description');
+  const supportAction = document.getElementById('support-action');
+  const supportButtons = document.querySelectorAll('[data-support]');
+  const chatConnectOverlay = document.getElementById('chat-connect-overlay');
+  const chatConnectOpenBtn = document.getElementById('chat-connect-open-btn');
+  const chatConnectCloseBtn = document.getElementById('chat-connect-close-btn');
+  const youtubeApiKeyInput = document.getElementById('youtube-api-key-input');
+  let lastSupportButton = null;
+
+  const readLocalSetting = (key) => {
+    try { return localStorage.getItem(key) || ''; } catch { return ''; }
+  };
+
+  const saveLocalSetting = (key, value) => {
+    try { localStorage.setItem(key, value); } catch { /* storage may be unavailable */ }
+  };
+
+  // 후원 URL이 정해지면 donate.url 값만 교체하면 됩니다.
+  const supportContents = {
+    leaderboard: {
+      kicker: 'HALL OF FAME',
+      title: '명예의 전당',
+      description: 'AI Troll Lab의 TOP 5 기록을 보여줄 글로벌 랭킹 시스템을 준비 중입니다.',
+      actionLabel: '',
+      url: ''
+    },
+    feedback: {
+      kicker: 'COMMUNITY',
+      title: '건의사항',
+      description: '버그 제보, 난이도 조정, 새로운 억까 기믹 아이디어를 GitHub Issue로 남겨주세요.',
+      actionLabel: '건의사항 남기기',
+      url: 'https://github.com/golddragon0207/ai-troll-lab/issues/new'
+    },
+    donate: {
+      kicker: 'SUPPORT',
+      title: '후원하기',
+      description: 'AI Troll Lab의 새로운 스테이지와 방송용 기능 개발을 응원하는 후원 페이지를 준비 중입니다.',
+      actionLabel: '후원 페이지 열기',
+      url: ''
+    }
+  };
+
+  const closeSupportOverlay = () => {
+    supportOverlay.classList.add('hidden');
+    lastSupportButton?.focus();
+  };
+
+  const openSupportOverlay = (type, trigger) => {
+    const content = supportContents[type];
+    if (!content) return;
+
+    lastSupportButton = trigger;
+    supportKicker.textContent = content.kicker;
+    supportTitle.textContent = content.title;
+    supportDescription.textContent = content.description;
+    supportAction.textContent = content.actionLabel;
+    supportAction.classList.toggle('hidden', !content.url);
+
+    if (content.url) {
+      supportAction.href = content.url;
+    } else {
+      supportAction.removeAttribute('href');
+    }
+
+    engine.player.clearInputs();
+    supportOverlay.classList.remove('hidden');
+    refreshAdfitSlot('ad-container-community', type);
+    supportCloseBtn.focus();
+  };
+
+  const updateLayoutScale = () => {
+    const viewportWidth = window.visualViewport?.width || window.innerWidth;
+    const viewportHeight = window.visualViewport?.height || window.innerHeight;
+    const scale = Math.max(0.1, Math.min(
+      viewportWidth / DESIGN_WIDTH,
+      viewportHeight / DESIGN_HEIGHT
+    ));
+
+    document.documentElement.style.setProperty('--ui-scale', scale.toFixed(4));
+    engine.resizeCanvas(scale);
+  };
+
+  const stopWebcam = () => {
+    const stream = webcamVideo.srcObject;
+    if (stream) stream.getTracks().forEach((track) => track.stop());
+    webcamVideo.srcObject = null;
+    webcamVideo.classList.add('hidden');
+    avatarFallback.classList.remove('hidden');
+    camToggleBtn.textContent = '웹캠 켜기';
+    camToggleBtn.setAttribute('aria-pressed', 'false');
+  };
+
+  updateLayoutScale();
+  window.addEventListener('resize', updateLayoutScale);
+  window.visualViewport?.addEventListener('resize', updateLayoutScale);
+
+  supportButtons.forEach((button) => {
+    button.addEventListener('click', () => openSupportOverlay(button.dataset.support, button));
+  });
+
+  document.querySelectorAll('[data-platform-input]').forEach((input) => {
+    input.value = readLocalSetting(`ai-troll-lab:${input.dataset.platformInput}:stream`);
+  });
+  youtubeApiKeyInput.value = readLocalSetting('ai-troll-lab:youtube:api-key') || YOUTUBE_API_KEY;
+
+  const closeChatConnectOverlay = () => {
+    chatConnectOverlay.classList.add('hidden');
+    chatConnectOpenBtn.focus();
+  };
+
+  chatConnectOpenBtn.addEventListener('click', () => {
+    chatConnectOverlay.classList.remove('hidden');
+    chatConnectCloseBtn.focus();
+  });
+  chatConnectCloseBtn.addEventListener('click', closeChatConnectOverlay);
+  chatConnectOverlay.addEventListener('click', (event) => {
+    if (event.target === chatConnectOverlay) closeChatConnectOverlay();
+  });
+
+  document.querySelectorAll('[data-platform-connect]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const platform = button.dataset.platformConnect;
+      const input = document.querySelector(`[data-platform-input="${platform}"]`);
+      const streamValue = input.value.trim();
+      saveLocalSetting(`ai-troll-lab:${platform}:stream`, streamValue);
+      if (platform === 'youtube') {
+        saveLocalSetting('ai-troll-lab:youtube:api-key', youtubeApiKeyInput.value.trim());
+      }
+      button.disabled = true;
+      await platformChat.connect(platform, streamValue, { youtubeApiKey: youtubeApiKeyInput.value });
+      button.disabled = false;
+    });
+  });
+
+  document.querySelectorAll('[data-platform-disconnect]').forEach((button) => {
+    button.addEventListener('click', () => platformChat.disconnect(button.dataset.platformDisconnect));
+  });
+  supportCloseBtn.addEventListener('click', closeSupportOverlay);
+  supportOverlay.addEventListener('click', (event) => {
+    if (event.target === supportOverlay) closeSupportOverlay();
+  });
+  window.addEventListener('keydown', (event) => {
+    if (event.code === 'Escape' && !supportOverlay.classList.contains('hidden')) {
+      event.preventDefault();
+      closeSupportOverlay();
+    } else if (event.code === 'Escape' && !chatConnectOverlay.classList.contains('hidden')) {
+      event.preventDefault();
+      closeChatConnectOverlay();
+    }
+  });
 
   // Start Game
   startBtn.addEventListener('click', () => {
     audioEngine.init();
     startOverlay.classList.add('hidden');
     engine.start();
+    audienceVoting.start();
   });
 
   // Restart Game
   restartBtn.addEventListener('click', () => {
     resultOverlay.classList.add('hidden');
     engine.start();
+    audienceVoting.start();
   });
 
   // Sound Toggle
   soundToggleBtn.addEventListener('click', () => {
     audioEngine.enabled = !audioEngine.enabled;
-    soundToggleBtn.textContent = audioEngine.enabled ? '🔊' : '🔇';
+    soundToggleIcon.textContent = audioEngine.enabled ? '🔊' : '🔇';
+    soundToggleLabel.textContent = audioEngine.enabled ? '사운드 ON' : '사운드 OFF';
+    soundToggleBtn.classList.toggle('active', audioEngine.enabled);
+    soundToggleBtn.setAttribute('aria-pressed', String(audioEngine.enabled));
+    soundToggleBtn.title = `사운드: ${audioEngine.enabled ? 'ON' : 'OFF'}`;
+    soundToggleBtn.blur();
+  });
+
+  obsToggleBtn.addEventListener('click', () => {
+    const enabled = document.body.classList.toggle('obs-overlay');
+    engine.setObsMode(enabled);
+    obsToggleLabel.textContent = enabled ? 'OBS ON' : 'OBS OFF';
+    obsToggleBtn.classList.toggle('active', enabled);
+    obsToggleBtn.setAttribute('aria-pressed', String(enabled));
+    obsToggleBtn.title = `OBS 투명 모드: ${enabled ? 'ON' : 'OFF'}`;
+    obsToggleBtn.blur();
   });
 
   // Webcam Toggle
   camToggleBtn.addEventListener('click', async () => {
     if (webcamVideo.classList.contains('hidden')) {
       try {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new Error('Camera API unavailable');
+        }
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         webcamVideo.srcObject = stream;
         webcamVideo.classList.remove('hidden');
         avatarFallback.classList.add('hidden');
         camToggleBtn.textContent = '웹캠 끄기';
+        camToggleBtn.setAttribute('aria-pressed', 'true');
       } catch (err) {
-        alert('웹캠 접근 권한을 확인해주세요. (카메라 연결 불필요시 가상 캐릭터 아바타가 사용됩니다)');
+        stopWebcam();
+        streamerState.textContent = '카메라 없이 아바타로 플레이 중';
+        alert('웹캠 권한을 허용하지 않아도 게임을 플레이할 수 있습니다. 기본 아바타를 사용합니다.');
       }
     } else {
-      if (webcamVideo.srcObject) {
-        webcamVideo.srcObject.getTracks().forEach(track => track.stop());
-      }
-      webcamVideo.classList.add('hidden');
-      avatarFallback.classList.remove('hidden');
-      camToggleBtn.textContent = '웹캠 켜기';
+      stopWebcam();
     }
+  });
+
+  window.addEventListener('pagehide', () => {
+    stopWebcam();
+    audienceVoting.destroy();
+    platformChat.disconnectAll();
   });
 });

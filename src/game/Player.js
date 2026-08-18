@@ -17,21 +17,22 @@ export class Player {
     this.jumpForce = -10.5;
     this.gravity = 0.5;
     this.isGrounded = false;
+    this.groundType = 'normal';
 
     // Dash Mechanic (SHIFT)
     this.isDashing = false;
     this.dashTimer = 0;
-    this.dashDuration = 12; // ~0.2s burst
+    this.dashDuration = 0.2;
     this.dashCooldown = 0;
-    this.maxDashCooldown = 60; // 1.0s cooldown
+    this.maxDashCooldown = 1;
     this.dashSpeedMultiplier = 2.8;
 
     // Parrying Mechanic (SPACE)
     this.isParrying = false;
     this.parryTimer = 0;
-    this.parryDuration = 18; // ~0.3s window
+    this.parryDuration = 0.3;
     this.parryCooldown = 0;
-    this.maxParryCooldown = 90; // 1.5s cooldown
+    this.maxParryCooldown = 1.5;
 
     // Input States
     this.keys = {
@@ -48,15 +49,24 @@ export class Player {
   }
 
   reset(x, y) {
-    this.x = x || this.startX;
-    this.y = y || this.startY;
+    this.x = x ?? this.startX;
+    this.y = y ?? this.startY;
     this.vx = 0;
     this.vy = 0;
     this.isDashing = false;
     this.isParrying = false;
     this.dashCooldown = 0;
     this.parryCooldown = 0;
+    this.isGrounded = false;
+    this.groundType = 'normal';
     this.trail = [];
+    this.clearInputs();
+  }
+
+  clearInputs() {
+    Object.keys(this.keys).forEach((key) => {
+      this.keys[key] = false;
+    });
   }
 
   handleKeyDown(code) {
@@ -104,14 +114,16 @@ export class Player {
     }
   }
 
-  update(platforms, gravityDir = 1) {
+  update(dt, platforms, gravityDir = 1) {
+    const frameFactor = dt * 60;
+
     // Cooldown updates
-    if (this.dashCooldown > 0) this.dashCooldown--;
-    if (this.parryCooldown > 0) this.parryCooldown--;
+    if (this.dashCooldown > 0) this.dashCooldown = Math.max(0, this.dashCooldown - dt);
+    if (this.parryCooldown > 0) this.parryCooldown = Math.max(0, this.parryCooldown - dt);
 
     // Active Dash State
     if (this.isDashing) {
-      this.dashTimer--;
+      this.dashTimer -= dt;
       if (this.dashTimer <= 0) {
         this.isDashing = false;
       }
@@ -119,7 +131,7 @@ export class Player {
 
     // Active Parry State
     if (this.isParrying) {
-      this.parryTimer--;
+      this.parryTimer -= dt;
       if (this.parryTimer <= 0) {
         this.isParrying = false;
       }
@@ -137,7 +149,14 @@ export class Player {
       if (moveDir === 0) moveDir = 1;
     }
 
-    this.vx = moveDir * currentSpeed;
+    const targetVx = moveDir * currentSpeed;
+    if (this.isGrounded && this.groundType === 'ice' && !this.isDashing) {
+      const iceResponse = Math.min(1, 0.08 * frameFactor);
+      this.vx += (targetVx - this.vx) * iceResponse;
+      if (moveDir === 0) this.vx *= Math.pow(0.985, frameFactor);
+    } else {
+      this.vx = targetVx;
+    }
 
     // Jump Logic
     if (this.keys.up && this.isGrounded && !this.isDashing) {
@@ -149,16 +168,17 @@ export class Player {
 
     // Gravity Application
     if (!this.isDashing) {
-      this.vy += this.gravity * gravityDir;
+      this.vy += this.gravity * gravityDir * frameFactor;
     } else {
       this.vy = 0; // Float horizontally while dashing
     }
 
     // Position updates with Platform Collision
-    this.x += this.vx;
+    this.x += this.vx * frameFactor;
     this.resolveHorizontalCollisions(platforms);
+    this.x = Math.max(0, Math.min(960 - this.width, this.x));
 
-    this.y += this.vy;
+    this.y += this.vy * frameFactor;
     this.resolveVerticalCollisions(platforms, gravityDir);
 
     // Record trail for dash animation
@@ -184,13 +204,21 @@ export class Player {
 
   resolveVerticalCollisions(platforms, gravityDir) {
     this.isGrounded = false;
+    this.groundType = 'normal';
     for (let p of platforms) {
       if (this.collidesWith(p)) {
         if (gravityDir === 1) { // Normal gravity
           if (this.vy > 0) { // Falling down
             this.y = p.y - this.height;
-            this.vy = 0;
-            this.isGrounded = true;
+            if (p.type === 'spring') {
+              this.vy = this.jumpForce * 1.35;
+              this.audio.playJump();
+              this.particles.emit(this.x + this.width / 2, p.y, '#ffb700', 14, 4, 3, 20);
+            } else {
+              this.vy = 0;
+              this.isGrounded = true;
+              this.groundType = p.type || 'normal';
+            }
           } else if (this.vy < 0) { // Hitting ceiling
             this.y = p.y + p.height;
             this.vy = 0;
@@ -198,8 +226,14 @@ export class Player {
         } else { // Inverted gravity
           if (this.vy < 0) { // Floating up to ceiling
             this.y = p.y + p.height;
-            this.vy = 0;
-            this.isGrounded = true;
+            if (p.type === 'spring') {
+              this.vy = -this.jumpForce * 1.35;
+              this.audio.playJump();
+            } else {
+              this.vy = 0;
+              this.isGrounded = true;
+              this.groundType = p.type || 'normal';
+            }
           } else if (this.vy > 0) {
             this.y = p.y - this.height;
             this.vy = 0;

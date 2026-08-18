@@ -96,8 +96,8 @@ export class BroadcastHUD {
     this.audio.playAIVoice();
   }
 
-  addChatMessage(text, highlightType = '') {
-    const viewer = this.viewerNames[Math.floor(Math.random() * this.viewerNames.length)];
+  addChatMessage(text, highlightType = '', viewerOverride = null) {
+    const viewer = viewerOverride || this.viewerNames[Math.floor(Math.random() * this.viewerNames.length)];
     const msgEl = document.createElement('div');
     msgEl.className = 'chat-item';
 
@@ -105,11 +105,19 @@ export class BroadcastHUD {
     if (highlightType === 'laugh') textClass += ' laugh';
     if (highlightType === 'highlight') textClass += ' highlight';
 
-    msgEl.innerHTML = `
-      <span class="chat-badge ${viewer.badge}">${viewer.badge.replace('badge-', '').toUpperCase()}</span>
-      <span class="chat-username">${viewer.name}:</span>
-      <span class="${textClass}">${text}</span>
-    `;
+    const badgeEl = document.createElement('span');
+    badgeEl.className = `chat-badge ${viewer.badge || 'badge-fan'}`;
+    badgeEl.textContent = viewer.badgeLabel || (viewer.badge || 'badge-fan').replace('badge-', '').toUpperCase();
+
+    const userEl = document.createElement('span');
+    userEl.className = 'chat-username';
+    userEl.textContent = `${viewer.name || '익명 시청자'}:`;
+
+    const textEl = document.createElement('span');
+    textEl.className = textClass;
+    textEl.textContent = String(text);
+
+    msgEl.append(badgeEl, userEl, textEl);
 
     this.chatMessages.appendChild(msgEl);
     this.chatMessages.scrollTop = this.chatMessages.scrollHeight;

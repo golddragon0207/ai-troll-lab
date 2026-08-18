@@ -1,12 +1,12 @@
-# 🤖 AI Bully Lab (AI의 킹받는 텔레포트 실험실)
+# 🤖 AI Troll Lab (AI 장난질 실험실)
 
 > **유튜버 & 스트리머 1인 방송 특화!**  
 > 스트리머를 대놓고 억까하는 킹받는 AI 마스터의 텔레포트와 트랩을 **0.5초 피지컬 대시와 패링**으로 깨부수는 독창적인 2D 아케이드 웹 게임입니다.
 
-![AI Bully Lab Game](https://img.shields.org/badge/Game-Live-00f0ff?style=for-the-badge&logo=gamepad)
+![AI Troll Lab Game](https://img.shields.org/badge/Game-Live-00f0ff?style=for-the-badge&logo=gamepad)
 ![License](https://img.shields.org/badge/License-MIT-bd00ff?style=for-the-badge)
 
-🎮 **정식 라이브 웹 게임 주소**: [https://golddragon0207.github.io/ai-bully-lab](https://golddragon0207.github.io/ai-bully-lab)
+🎮 **정식 라이브 웹 게임 주소**: [https://golddragon0207.github.io/ai-troll-lab](https://golddragon0207.github.io/ai-troll-lab)
 
 ---
 
@@ -20,6 +20,56 @@
    - `ㅋㅋㅋㅋㅋ`, `AI 폼 미쳤다`, `0.5초 피지컬 대시 지렸다`, `멘탈 바사삭` 등 찰진 시청자 반응 팝업
 4. **🔊 무저작권 Web Audio API 사운드**
    - 방송 저작권 걱정 없이 웹 브라우저가 직접 합성하는 레트로 8-bit 효과음 (점프, 대시, 텔레포트, 폭발, AI 비웃음)
+5. **🗳️ SOOP · 치지직 · YouTube 공통 시청자 투표**
+   - `!회복`, `!과열`, `!워프`, `!충격` 명령을 20초 동안 집계해 최다 득표 효과를 게임에 반영
+   - 플랫폼과 사용자 ID를 조합해 한 라운드 한 표만 허용하며, 명령을 바꾸면 기존 표를 이동
+   - 방송 연동 전에도 사이드바의 플랫폼 선택/입력창으로 전체 흐름을 테스트 가능
+   - 사이드바의 `실방송 연동`에서 플랫폼별 방송 URL을 등록하고 연결 상태를 확인
+
+### 실시간 채팅 릴레이 규격
+
+SOOP·치지직 CORS 프록시 Worker:
+
+```text
+https://ai-troll-lab-chat-proxy.skkim867.workers.dev
+```
+
+상태 확인:
+
+```text
+https://ai-troll-lab-chat-proxy.skkim867.workers.dev/health
+```
+
+YouTube API 키는 저장소에 직접 기록하지 않고 GitHub Actions의 `YOUTUBE_API_KEY` Repository Secret을 빌드 시 `VITE_YOUTUBE_API_KEY`로 주입합니다. 로컬 개발에서는 실방송 연동 창에 키를 입력하거나, 커밋되지 않는 `.env.local`을 사용할 수 있습니다.
+
+```text
+VITE_YOUTUBE_API_KEY=발급받은_API_키
+```
+
+플랫폼 토큰은 정적 웹 페이지에 저장하지 않습니다. SOOP, 치지직, YouTube 어댑터를 실행하는 별도 서버가 아래 JSON을 WebSocket으로 전달하도록 구성합니다.
+
+```json
+{
+  "platform": "youtube",
+  "userId": "platform-user-id",
+  "userName": "시청자닉네임",
+  "message": "!회복"
+}
+```
+
+게임 실행 주소에 릴레이를 지정하면 자동 연결됩니다.
+
+```text
+https://게임주소.example/?chatRelay=wss://relay.example/chat
+```
+
+릴레이 없이 개발할 때는 브라우저 이벤트로도 동일한 입력을 보낼 수 있습니다.
+
+```js
+window.dispatchEvent(new CustomEvent('audience-chat', {
+  detail: { platform: 'chzzk', userId: '123', userName: '테스터', message: '!과열' }
+}));
+```
 
 ---
 
@@ -59,7 +109,7 @@
 
 ### 3. 파일 구조
 ```
-ai-bully-lab/
+ai-troll-lab/
 ├── index.html              # Broadcast Container HTML
 ├── package.json            # Vite Project Configuration
 ├── README.md               # Game Manual & Overview
@@ -84,8 +134,8 @@ ai-bully-lab/
 
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/golddragon0207/ai-bully-lab.git
-cd ai-bully-lab
+git clone https://github.com/golddragon0207/ai-troll-lab.git
+cd ai-troll-lab
 
 # 2. 패키지 설치
 npm install
@@ -99,4 +149,4 @@ npm run build
 
 ---
 
-© 2026 AI Bully Lab • Streamer Edition
+© 2026 AI Troll Lab • Streamer Edition

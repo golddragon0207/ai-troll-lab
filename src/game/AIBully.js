@@ -1,20 +1,22 @@
 export class AIBully {
-  constructor(hud, audioEngine, particleSystem) {
+  constructor(hud, audioEngine, particleSystem, events = {}) {
     this.hud = hud;
     this.audio = audioEngine;
     this.particles = particleSystem;
+    this.events = events;
 
     // AI Heat & Overheat Cooldown
     this.heat = 0; // 0 to 100
     this.maxHeat = 100;
     this.isOverheated = false;
     this.overheatTimer = 0;
-    this.maxOverheatDuration = 180; // 3 seconds at 60fps
+    this.maxOverheatDuration = 3;
 
     // Teleportation Pre-telegraphing (0.5s Warning Glow)
     this.isTelegraphing = false;
     this.telegraphTimer = 0;
-    this.telegraphDuration = 30; // 0.5 seconds at 60fps
+    this.telegraphDuration = 0.5;
+    this.warningSoundTimer = 0;
     this.targetCube = null;
 
     // AI Gravity & Environmental Traps
@@ -49,15 +51,17 @@ export class AIBully {
     this.overheatTimer = 0;
     this.isTelegraphing = false;
     this.telegraphTimer = 0;
+    this.warningSoundTimer = 0;
     this.gravityDir = 1;
     this.gravityTimer = 0;
     this.hud.updateAIHeat(0, false);
   }
 
-  update(player, goalCube, stage) {
+  update(dt, player, goalCube, stage) {
     // Overheat Cooldown countdown
     if (this.isOverheated) {
-      this.overheatTimer--;
+      this.overheatTimer = Math.max(0, this.overheatTimer - dt);
+      if (this.overheatTimer < 1e-6) this.overheatTimer = 0;
       this.hud.updateAIHeat(100, true);
       if (this.overheatTimer <= 0) {
         this.isOverheated = false;
@@ -70,7 +74,9 @@ export class AIBully {
 
     // Handle Active Telegraphing (0.5s pre-warning window)
     if (this.isTelegraphing) {
-      this.telegraphTimer--;
+      this.telegraphTimer = Math.max(0, this.telegraphTimer - dt);
+      if (this.telegraphTimer < 1e-6) this.telegraphTimer = 0;
+      this.warningSoundTimer -= dt;
       this.hud.updateAIHeat(this.heat, false);
 
       // Emit warning sparks on goal cube
@@ -80,7 +86,10 @@ export class AIBully {
           goalCube.y + goalCube.height / 2,
           '#ff2a5f', 3, 5, 2, 10
         );
-        this.audio.playTeleportWarning();
+        if (this.warningSoundTimer <= 0) {
+          this.audio.playTeleportWarning();
+          this.warningSoundTimer = 0.1;
+        }
       }
 
       // Check if Player DODGED via SHIFT Dash OR PARRIED via Spacebar
@@ -88,6 +97,8 @@ export class AIBully {
         // Player successfully DODGED or PARRIED!
         this.isTelegraphing = false;
         this.heat += 40; // Penalty to AI heat!
+        const defenseType = player.isParrying ? 'parry' : 'dash';
+        this.events.onDefense?.(defenseType);
         const taunt = this.tauntsDodged[Math.floor(Math.random() * this.tauntsDodged.length)];
         this.hud.setAIDialogue(taunt);
         this.hud.triggerDodgeChat();
@@ -120,6 +131,7 @@ export class AIBully {
         // Trigger 0.5s pre-telegraphing warning glow!
         this.isTelegraphing = true;
         this.telegraphTimer = this.telegraphDuration;
+        this.warningSoundTimer = 0;
         this.hud.setAIDialogue("⚠️ 0.5초 후 텔레포트 발동! (SHIFT 대시로 피해라!)");
       }
     }
@@ -149,10 +161,12 @@ export class AIBully {
   }
 
   checkOverheat() {
+    this.heat = Math.min(this.maxHeat, this.heat);
     this.hud.updateAIHeat(this.heat, false);
-    if (this.heat >= this.maxHeat) {
+    if (this.heat >= this.maxHeat && !this.isOverheated) {
       this.isOverheated = true;
       this.overheatTimer = this.maxOverheatDuration;
+      this.events.onOverheat?.();
       const taunt = this.tauntsOverheat[Math.floor(Math.random() * this.tauntsOverheat.length)];
       this.hud.setAIDialogue(taunt);
       this.hud.spawnFakePopup("OVERHEAT DETECTED!", "AI가 3초간 과열에 빠졌습니다! 지금 골인하세요!");
@@ -160,11 +174,17 @@ export class AIBully {
     }
   }
 
+  addHeat(amount, dialogue = '') {
+    if (this.isOverheated) return false;
+    this.heat += amount;
+    if (dialogue) this.hud.setAIDialogue(dialogue);
+    this.checkOverheat();
+    return true;
+  }
+
   bribeAI() {
     if (this.isOverheated) return;
-    this.heat += 35;
-    this.hud.setAIDialogue("도게자를 올리는군 ㅋ 뇌물 수수 후 잠시 감시를 느슨하게 해주지");
+    this.addHeat(35, "도게자를 올리는군 ㅋ 뇌물 수수 후 잠시 감시를 느슨하게 해주지");
     this.hud.addChatMessage("스트리머가 AI한테 도게자를 박습니다 ㅋㅋㅋㅋ", "highlight");
-    this.checkOverheat();
   }
 }

@@ -11,10 +11,11 @@ export class Particle {
     this.shape = shape;
   }
 
-  update() {
-    this.x += this.vx;
-    this.y += this.vy;
-    this.life--;
+  update(dt) {
+    const frameFactor = dt * 60;
+    this.x += this.vx * frameFactor;
+    this.y += this.vy * frameFactor;
+    this.life -= frameFactor;
   }
 
   draw(ctx) {
@@ -61,9 +62,9 @@ export class ParticleSystem {
     this.emit(x, y, '#ffffff', 20, 10, 2, 25, 'circle');
   }
 
-  update() {
+  update(dt) {
     for (let i = this.particles.length - 1; i >= 0; i--) {
-      this.particles[i].update();
+      this.particles[i].update(dt);
       if (this.particles[i].life <= 0) {
         this.particles.splice(i, 1);
       }
