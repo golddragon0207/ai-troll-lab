@@ -44,12 +44,14 @@ export class Stage {
     } else if (stageNum === 3) {
       // Stage 3: 트램펄린 스프링
       this.spawnPoint = { x: 80, y: 480 };
-      this.goalCube = { x: 460, y: 100, width: 32, height: 32 };
+      this.goalCube = { x: 460, y: 175, width: 32, height: 32 };
       this.platforms.push({ x: 50, y: 520, width: 140, height: 20, color: '#00f0ff', type: 'normal' });
       this.platforms.push({ x: 240, y: 480, width: 80, height: 20, color: '#ffb700', type: 'spring' });
       this.platforms.push({ x: 380, y: 300, width: 180, height: 20, color: '#00f0ff', type: 'moving', vx: 3, minX: 250, maxX: 650 });
       this.platforms.push({ x: 680, y: 480, width: 80, height: 20, color: '#ffb700', type: 'spring' });
-      this.platforms.push({ x: 430, y: 140, width: 100, height: 20, color: '#bd00ff', type: 'normal' });
+      // The moving platform sits at y=300. Keeping the exit platform within the
+      // normal jump height makes the final core reachable without a hidden trick.
+      this.platforms.push({ x: 430, y: 215, width: 100, height: 20, color: '#bd00ff', type: 'normal' });
       this.hazards.push({ x: 200, y: H - 45, width: 450, height: 15, type: 'spikes' });
 
     } else if (stageNum === 4) {

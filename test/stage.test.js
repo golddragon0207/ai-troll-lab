@@ -30,3 +30,11 @@ test('goal relocation always lands above a non-spring platform', () => {
     )));
   }
 });
+
+test('stage three final core is within a normal jump from the moving platform', () => {
+  const stage = new Stage();
+  stage.loadStage(3);
+  const moving = stage.platforms.find((platform) => platform.type === 'moving');
+  const finalCore = stage.dataCores.reduce((highest, core) => core.y < highest.y ? core : highest);
+  assert.ok(moving.y - finalCore.platform.y <= 110);
+});
