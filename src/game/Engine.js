@@ -22,6 +22,10 @@ export class Engine {
       },
       onOverheat: () => {
         this.aiOverheatCount++;
+      },
+      onTeleport: (stageNum) => {
+        const missDamage = Math.min(30, 12 + (stageNum - 1) * 2);
+        this.takeMentalDamage(missDamage, 'AI_TELEPORT');
       }
     });
     this.stage = new Stage();
@@ -104,6 +108,7 @@ export class Engine {
     this.stop();
     this.resizeCanvas();
     this.stage.loadStage(1);
+    this.ai.setDifficulty(1);
     this.player.reset(this.stage.spawnPoint.x, this.stage.spawnPoint.y);
     this.ai.reset();
     this.particles.clear();
@@ -203,6 +208,7 @@ export class Engine {
     if (this.stage.currentStageNum < this.stage.totalStages) {
       const nextNum = this.stage.currentStageNum + 1;
       this.stage.loadStage(nextNum);
+      this.ai.setDifficulty(nextNum);
       this.player.reset(this.stage.spawnPoint.x, this.stage.spawnPoint.y);
       this.hud.updateStageDisplay(nextNum, this.stage.totalStages);
       this.hud.setAIDialogue(`Stage ${nextNum} 도착! 난이도가 더 매워진다 🤖`);
@@ -303,7 +309,9 @@ export class Engine {
     if (!this.isRunning) return;
 
     // Collision Check: Player vs Goal Cube
-    if (this.player.collidesWith(this.stage.goalCube)) {
+    // AI 경고 중에는 목표를 먼저 밟아도 클리어되지 않는다.
+    // 경고 타이밍에 대시/패링으로 반격하거나 AI가 과열된 뒤에만 확보할 수 있다.
+    if (this.player.collidesWith(this.stage.goalCube) && !this.ai.isTelegraphing) {
       this.nextStage();
     }
   }

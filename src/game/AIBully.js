@@ -16,6 +16,8 @@ export class AIBully {
     this.isTelegraphing = false;
     this.telegraphTimer = 0;
     this.telegraphDuration = 0.5;
+    this.attackRadius = 125;
+    this.currentStage = 1;
     this.warningSoundTimer = 0;
     this.targetCube = null;
 
@@ -55,6 +57,16 @@ export class AIBully {
     this.gravityDir = 1;
     this.gravityTimer = 0;
     this.hud.updateAIHeat(0, false);
+  }
+
+  setDifficulty(stageNum = 1) {
+    this.currentStage = Math.max(1, Number(stageNum) || 1);
+    const stageOffset = this.currentStage - 1;
+
+    // 초반에는 패턴을 읽을 시간을 주고, 후반으로 갈수록 반응 창과 휴식 시간을 줄인다.
+    this.telegraphDuration = Math.max(0.28, 0.52 - stageOffset * 0.025);
+    this.attackRadius = Math.min(165, 125 + stageOffset * 4);
+    this.maxOverheatDuration = Math.max(2, 3 - stageOffset * 0.1);
   }
 
   update(dt, player, goalCube, stage) {
@@ -127,12 +139,12 @@ export class AIBully {
         (player.y + player.height / 2) - (goalCube.y + goalCube.height / 2)
       );
 
-      if (dist < 110) {
-        // Trigger 0.5s pre-telegraphing warning glow!
+      if (dist < this.attackRadius) {
+        // Trigger a stage-scaled pre-telegraphing warning glow.
         this.isTelegraphing = true;
         this.telegraphTimer = this.telegraphDuration;
         this.warningSoundTimer = 0;
-        this.hud.setAIDialogue("⚠️ 0.5초 후 텔레포트 발동! (SHIFT 대시로 피해라!)");
+        this.hud.setAIDialogue(`⚠️ ${this.telegraphDuration.toFixed(2)}초 후 텔레포트! SHIFT/SPACE로 반격해라!`);
       }
     }
   }
@@ -151,6 +163,7 @@ export class AIBully {
     const taunt = this.tauntsTeleport[Math.floor(Math.random() * this.tauntsTeleport.length)];
     this.hud.setAIDialogue(taunt);
     this.hud.triggerTeleportChat();
+    this.events.onTeleport?.(this.currentStage);
 
     // Random chance to spawn fake error popup
     if (Math.random() < 0.4) {
