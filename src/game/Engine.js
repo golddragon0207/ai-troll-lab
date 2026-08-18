@@ -45,6 +45,7 @@ export class Engine {
     this.mentalHp = 100;
     this.successfulDashesCount = 0;
     this.aiOverheatCount = 0;
+    this.runStartedAt = 0;
 
     // Screen Shake & Camera FX
     this.shakeDuration = 0;
@@ -117,6 +118,7 @@ export class Engine {
     this.mentalHp = this.mentalHpMax;
     this.successfulDashesCount = 0;
     this.aiOverheatCount = 0;
+    this.runStartedAt = performance.now();
 
     this.hud.updateMentalHP(this.mentalHp, this.mentalHpMax);
     this.hud.updateStageDisplay(1, this.stage.totalStages);
@@ -228,8 +230,9 @@ export class Engine {
     resultTitle.style.color = "#00ff88";
     resultDesc.textContent = "피지컬 대시와 패링으로 AI 억까를 완벽하게 파괴했습니다! 스트리머의 위대한 승리!";
 
-    this.updateResultStats();
+    const result = this.updateResultStats('clear');
     resultOverlay.classList.remove('hidden');
+    window.dispatchEvent(new CustomEvent('game-result', { detail: result }));
   }
 
   gameOver() {
@@ -242,14 +245,42 @@ export class Engine {
     resultTitle.style.color = "#ff2a5f";
     resultDesc.textContent = "AI의 억까에 멘탈이 완전 파괴되었습니다. 방송 종료의 위기!";
 
-    this.updateResultStats();
+    const result = this.updateResultStats('gameover');
     resultOverlay.classList.remove('hidden');
+    window.dispatchEvent(new CustomEvent('game-result', { detail: result }));
   }
 
-  updateResultStats() {
-    document.getElementById('stat-stage').textContent = `Stage ${this.stage.currentStageNum}`;
+  updateResultStats(result) {
+    const stage = this.stage.currentStageNum;
+    const playTimeSec = Math.max(1, Math.round((performance.now() - this.runStartedAt) / 1000));
+    const minutes = Math.floor(playTimeSec / 60);
+    const seconds = String(playTimeSec % 60).padStart(2, '0');
+    const playTimeStr = `${minutes}:${seconds}`;
+    const clearBonus = result === 'clear' ? 50000 : 0;
+    const speedBonus = result === 'clear' ? Math.max(0, 20000 - playTimeSec * 30) : 0;
+    const score = Math.min(999999, Math.max(0, Math.round(
+      stage * 10000
+      + this.successfulDashesCount * 800
+      + this.aiOverheatCount * 1200
+      + clearBonus
+      + speedBonus
+    )));
+
+    document.getElementById('stat-stage').textContent = `Stage ${stage}`;
     document.getElementById('stat-dashes').textContent = `${this.successfulDashesCount}회`;
     document.getElementById('stat-cooldowns').textContent = `${this.aiOverheatCount}회`;
+    document.getElementById('stat-score').textContent = score.toLocaleString('ko-KR');
+    document.getElementById('stat-playtime').textContent = playTimeStr;
+
+    return {
+      score,
+      stage,
+      dashes: this.successfulDashesCount,
+      overheats: this.aiOverheatCount,
+      result,
+      playTimeSec,
+      playTimeStr
+    };
   }
 
   loop(timestamp) {

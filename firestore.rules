@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /leaderboard/{entryId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly([
+                        'nickname', 'score', 'stage', 'dashes', 'overheats',
+                        'result', 'playTimeSec', 'playTimeStr', 'createdAt'
+                      ])
+                    && request.resource.data.nickname is string
+                    && request.resource.data.nickname.size() >= 1
+                    && request.resource.data.nickname.size() <= 20
+                    && request.resource.data.score is number
+                    && request.resource.data.score >= 0
+                    && request.resource.data.score <= 999999
+                    && request.resource.data.stage is number
+                    && request.resource.data.stage >= 1
+                    && request.resource.data.stage <= 10
+                    && request.resource.data.dashes is number
+                    && request.resource.data.dashes >= 0
+                    && request.resource.data.dashes <= 9999
+                    && request.resource.data.overheats is number
+                    && request.resource.data.overheats >= 0
+                    && request.resource.data.overheats <= 9999
+                    && request.resource.data.result in ['clear', 'gameover']
+                    && request.resource.data.playTimeSec is number
+                    && request.resource.data.playTimeSec >= 1
+                    && request.resource.data.playTimeSec <= 86400
+                    && request.resource.data.playTimeStr is string
+                    && request.resource.data.playTimeStr.size() <= 16
+                    && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
+    match /suggestions/{docId} {
+      allow read: if false;
+      allow create: if request.resource.data.keys().hasOnly(['text', 'nickname', 'createdAt'])
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() >= 1
+                    && request.resource.data.text.size() <= 500
+                    && request.resource.data.nickname is string
+                    && request.resource.data.nickname.size() >= 1
+                    && request.resource.data.nickname.size() <= 20
+                    && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+  }
+}

@@ -5,6 +5,8 @@ import { refreshAdfitSlot } from './ui/AdFitManager.js';
 import { AudienceVoteController } from './audience/AudienceVoteController.js';
 import { PlatformChatConnector } from './audience/PlatformChatConnector.js';
 import { YOUTUBE_API_KEY } from './audience/platformConfig.js';
+import { FirestoreService } from './firebase/FirestoreService.js';
+import { CommunityController } from './firebase/CommunityController.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const DESIGN_WIDTH = 1280;
@@ -13,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const audioEngine = new AudioEngine();
   const hud = new BroadcastHUD(audioEngine);
   const engine = new Engine(canvas, hud, audioEngine);
+  const community = new CommunityController(new FirestoreService());
   const audienceVoting = new AudienceVoteController(engine, hud);
   const platformChat = new PlatformChatConnector({
     onMessage: (detail) => window.dispatchEvent(new CustomEvent('audience-chat', { detail })),
@@ -65,16 +68,16 @@ document.addEventListener('DOMContentLoaded', () => {
     leaderboard: {
       kicker: 'HALL OF FAME',
       title: '명예의 전당',
-      description: 'AI Troll Lab의 TOP 5 기록을 보여줄 글로벌 랭킹 시스템을 준비 중입니다.',
+      description: 'AI Troll Lab 도전자들의 실시간 TOP 10 기록입니다.',
       actionLabel: '',
       url: ''
     },
     feedback: {
       kicker: 'COMMUNITY',
       title: '건의사항',
-      description: '버그 제보, 난이도 조정, 새로운 억까 기믹 아이디어를 GitHub Issue로 남겨주세요.',
-      actionLabel: '건의사항 남기기',
-      url: 'https://github.com/golddragon0207/ai-troll-lab/issues/new'
+      description: '버그 제보, 난이도 조정, 새로운 억까 기믹을 개발자에게 바로 보내주세요.',
+      actionLabel: '',
+      url: ''
     },
     donate: {
       kicker: 'SUPPORT',
@@ -90,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     lastSupportButton?.focus();
   };
 
-  const openSupportOverlay = (type, trigger) => {
+  const openSupportOverlay = async (type, trigger) => {
     const content = supportContents[type];
     if (!content) return;
 
@@ -110,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     engine.player.clearInputs();
     supportOverlay.classList.remove('hidden');
     refreshAdfitSlot('ad-container-community', type);
+    await community.render(type);
     supportCloseBtn.focus();
   };
 
@@ -199,6 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     audioEngine.init();
     startOverlay.classList.add('hidden');
     engine.start();
+    community.resetResult();
     audienceVoting.start();
   });
 
@@ -206,8 +211,11 @@ document.addEventListener('DOMContentLoaded', () => {
   restartBtn.addEventListener('click', () => {
     resultOverlay.classList.add('hidden');
     engine.start();
+    community.resetResult();
     audienceVoting.start();
   });
+
+  window.addEventListener('game-result', (event) => community.setResult(event.detail));
 
   // Sound Toggle
   soundToggleBtn.addEventListener('click', () => {

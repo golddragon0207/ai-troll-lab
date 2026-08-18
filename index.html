@@ -118,7 +118,23 @@
                 <div class="stat-label">AI 과열 야기 횟수</div>
                 <div id="stat-cooldowns" class="stat-value">2회</div>
               </div>
+              <div class="stat-box">
+                <div class="stat-label">최종 점수</div>
+                <div id="stat-score" class="stat-value">0</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">플레이 시간</div>
+                <div id="stat-playtime" class="stat-value">0:00</div>
+              </div>
             </div>
+            <form id="score-submit-form" class="score-submit-form hidden">
+              <label for="score-nickname">명예의 전당 등록</label>
+              <div class="score-submit-row">
+                <input id="score-nickname" type="text" maxlength="20" required placeholder="닉네임 (최대 20자)" autocomplete="nickname">
+                <button id="score-submit-btn" type="submit">점수 등록</button>
+              </div>
+              <p id="score-submit-status" aria-live="polite"></p>
+            </form>
             <button id="restart-btn" class="primary-btn glow-btn">🔄 다시 도전하기 (RETRY)</button>
           </div>
         </div>
@@ -226,6 +242,7 @@
         <span id="support-kicker" class="support-kicker">COMMUNITY</span>
         <h2 id="support-title" class="support-title">건의사항</h2>
         <p id="support-description" class="support-description"></p>
+        <div id="support-body" class="community-body"></div>
         <div id="ad-container-community" class="ad-banner-box" aria-label="카카오 애드핏 광고"></div>
         <a id="support-action" class="support-action hidden" href="#" target="_blank" rel="noopener noreferrer">바로가기</a>
       </section>

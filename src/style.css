@@ -981,6 +981,90 @@ body {
   line-height: 1.6;
 }
 
+.community-body {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.community-empty {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 0.78rem;
+}
+
+.community-error { color: #ff8ba5; }
+
+.leaderboard-list {
+  display: grid;
+  gap: 5px;
+  max-height: 200px;
+  overflow-y: auto;
+  list-style: none;
+  text-align: left;
+}
+
+.leaderboard-list li {
+  display: grid;
+  grid-template-columns: 34px 1fr 90px 110px;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.24);
+  font-size: 0.72rem;
+}
+
+.leaderboard-list li > span:not(.leaderboard-rank) { color: var(--text-muted); }
+.leaderboard-list li b { color: var(--cyber-yellow); text-align: right; }
+.leaderboard-rank { color: var(--cyan-glow); font-family: var(--font-display); text-align: center; }
+
+.community-form {
+  display: grid;
+  gap: 8px;
+}
+
+.community-form input,
+.community-form textarea,
+.score-submit-form input {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  padding: 9px 10px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font: inherit;
+}
+
+.community-form textarea { min-height: 92px; resize: vertical; }
+
+.community-form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.community-form button,
+.score-submit-form button {
+  flex: 0 0 auto;
+  border: 1px solid var(--cyan-glow);
+  border-radius: 6px;
+  padding: 8px 14px;
+  background: rgba(0, 240, 255, 0.14);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.community-form button:disabled,
+.score-submit-form button:disabled { cursor: wait; opacity: 0.58; }
+
 .ad-banner-box {
   width: 728px;
   max-width: 100%;
@@ -1090,19 +1174,41 @@ body.obs-overlay .broadcast-container {
 }
 
 .stats-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
   width: 100%;
   margin: 10px 0;
 }
 
 .stat-box {
-  flex: 1;
   background: rgba(0, 0, 0, 0.4);
   padding: 10px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
+#result-overlay .overlay-card {
+  width: 720px;
+  padding: 24px 28px;
+  gap: 12px;
+}
+
+.score-submit-form {
+  width: 100%;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  text-align: left;
+}
+
+.score-submit-form.hidden { display: none; }
+.score-submit-form label { color: var(--cyan-glow); font-size: 0.72rem; font-weight: 800; }
+.score-submit-row { display: grid; grid-template-columns: 1fr auto; gap: 7px; }
+.score-submit-form p { min-height: 14px; color: var(--text-muted); font-size: 0.66rem; }
 
 .stat-label {
   font-size: 0.7rem;
