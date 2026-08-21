@@ -3,6 +3,7 @@ export class AudioEngine {
   constructor() {
     this.ctx = null;
     this.enabled = true;
+    this.explosionBuffer = null;
   }
 
   init() {
@@ -109,15 +110,18 @@ export class AudioEngine {
 
   playExplosion() {
     if (!this.enabled || !this.ctx) return;
-    // White noise explosion
-    const bufferSize = this.ctx.sampleRate * 0.3;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const output = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      output[i] = Math.random() * 2 - 1;
+    if (!this.explosionBuffer) {
+      const bufferSize = this.ctx.sampleRate * 0.3;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      this.explosionBuffer = buffer;
     }
+
     const whiteNoise = this.ctx.createBufferSource();
-    whiteNoise.buffer = buffer;
+    whiteNoise.buffer = this.explosionBuffer;
     const gain = this.ctx.createGain();
     gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);

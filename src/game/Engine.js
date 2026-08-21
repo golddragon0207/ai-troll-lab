@@ -128,6 +128,7 @@ export class Engine {
     this.ai.reset();
     this.particles.clear();
     this.hud.clearPopups();
+    this.hud.startChatTicker();
 
     this.mentalHpMax = 100;
     this.mentalHp = this.mentalHpMax;
@@ -137,7 +138,7 @@ export class Engine {
     this.pendingNextStage = null;
     this.lockMessageCooldown = 0;
 
-    this.hud.updateMentalHP(this.mentalHp, this.mentalHpMax);
+    this.hud.updateMentalHP(this.mentalHp, this.mentalHpMax, true);
     this.hud.updateStageDisplay(1, this.stage.totalStages);
     this.hud.setAIDialogue("데이터 코어 3개를 전부 훔쳐야 출구가 열린다. 어디 한번 해봐라!");
 
@@ -164,6 +165,7 @@ export class Engine {
       this.animationId = null;
     }
     this.player.clearInputs();
+    this.hud.stopChatTicker();
   }
 
   triggerScreenShake(duration = 0.18, magnitude = 6) {
@@ -415,8 +417,10 @@ export class Engine {
       this.attackDirector.update(dt, this.player, {
         onDefend: (type) => {
           this.handleDefense(type);
-          this.audio.playParry();
-          this.particles.emitParryShockwave(this.player.x + this.player.width / 2, this.player.y + this.player.height / 2);
+          if (type === 'parry') {
+            this.audio.playParry();
+            this.particles.emitParryShockwave(this.player.x + this.player.width / 2, this.player.y + this.player.height / 2);
+          }
         },
         onHit: (type) => {
           const balance = getDifficultyBalance(this.stage.currentStageNum, this.difficulty);

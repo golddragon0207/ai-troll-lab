@@ -15,6 +15,10 @@ export class BroadcastHUD {
     this.chatMessages = document.getElementById('chat-messages');
     this.popupLayer = document.getElementById('popup-layer');
     this.stageNumEl = document.getElementById('current-stage-num');
+    this.chatTickerId = null;
+    this.lastMentalPct = null;
+    this.lastDashState = '';
+    this.lastHeatState = '';
 
     // Chat presets & viewer pools
     this.viewerNames = [
@@ -56,11 +60,12 @@ export class BroadcastHUD {
       "갓겜 모먼트 떴다 ㅋㅋㅋ"
     ];
 
-    this.startChatTicker();
   }
 
-  updateMentalHP(current, max) {
+  updateMentalHP(current, max, force = false) {
     const pct = Math.max(0, Math.min(100, Math.floor((current / max) * 100)));
+    if (!force && pct === this.lastMentalPct) return;
+    this.lastMentalPct = pct;
     this.mentalHpBar.style.width = `${pct}%`;
     this.mentalHpVal.textContent = `${pct}%`;
 
@@ -77,11 +82,17 @@ export class BroadcastHUD {
   }
 
   updateDashCooldown(pct, ready) {
+    const state = `${pct}:${ready}`;
+    if (state === this.lastDashState) return;
+    this.lastDashState = state;
     this.dashCooldownBar.style.width = `${pct}%`;
     this.dashStatusVal.textContent = ready ? 'READY' : `${Math.ceil(pct)}%`;
   }
 
   updateAIHeat(pct, isOverheated) {
+    const state = `${Math.floor(pct)}:${isOverheated}`;
+    if (state === this.lastHeatState) return;
+    this.lastHeatState = state;
     this.aiHeatBar.style.width = `${pct}%`;
     this.aiHeatVal.textContent = isOverheated ? 'OVERHEAT! (3s)' : `${Math.floor(pct)}%`;
   }
@@ -139,10 +150,17 @@ export class BroadcastHUD {
   }
 
   startChatTicker() {
-    setInterval(() => {
+    if (this.chatTickerId !== null) return;
+    this.chatTickerId = window.setInterval(() => {
       const text = this.chatPoolNormal[Math.floor(Math.random() * this.chatPoolNormal.length)];
       this.addChatMessage(text);
     }, 2800);
+  }
+
+  stopChatTicker() {
+    if (this.chatTickerId === null) return;
+    window.clearInterval(this.chatTickerId);
+    this.chatTickerId = null;
   }
 
   spawnFakePopup(title = "AI Warning System", text = "방금 억까 실패로 AI가 빡쳤습니다.") {
@@ -179,6 +197,6 @@ export class BroadcastHUD {
   }
 
   clearPopups() {
-    this.popupLayer.innerHTML = '';
+    this.popupLayer.replaceChildren();
   }
 }

@@ -38,12 +38,17 @@ export class Particle {
 }
 
 export class ParticleSystem {
-  constructor() {
+  constructor(maxParticles = 240) {
     this.particles = [];
+    this.maxParticles = maxParticles;
   }
 
   emit(x, y, color, count = 10, speed = 4, size = 3, life = 30, shape = 'circle') {
-    for (let i = 0; i < count; i++) {
+    const particleCount = Math.min(count, this.maxParticles);
+    const overflow = this.particles.length + particleCount - this.maxParticles;
+    if (overflow > 0) this.particles.splice(0, overflow);
+
+    for (let i = 0; i < particleCount; i++) {
       const angle = Math.random() * Math.PI * 2;
       const spd = (Math.random() * 0.8 + 0.2) * speed;
       const vx = Math.cos(angle) * spd;
@@ -63,19 +68,22 @@ export class ParticleSystem {
   }
 
   update(dt) {
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      this.particles[i].update(dt);
-      if (this.particles[i].life <= 0) {
-        this.particles.splice(i, 1);
+    let writeIndex = 0;
+    for (let readIndex = 0; readIndex < this.particles.length; readIndex++) {
+      const particle = this.particles[readIndex];
+      particle.update(dt);
+      if (particle.life > 0) {
+        this.particles[writeIndex++] = particle;
       }
     }
+    this.particles.length = writeIndex;
   }
 
   draw(ctx) {
-    this.particles.forEach(p => p.draw(ctx));
+    for (const particle of this.particles) particle.draw(ctx);
   }
 
   clear() {
-    this.particles = [];
+    this.particles.length = 0;
   }
 }
