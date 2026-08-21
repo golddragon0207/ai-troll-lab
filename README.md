@@ -148,6 +148,7 @@ npm install
 # 3. 로컬 키 설정 (.env.local, 커밋 금지)
 VITE_FIREBASE_API_KEY=Firebase_Web_API_키
 VITE_DONATION_URL=
+# 선택 사항: 기본 애드핏 단위를 교체할 때만 입력
 VITE_ADFIT_LEADERBOARD_UNIT=
 VITE_ADFIT_DONATE_UNIT=
 VITE_ADFIT_FEEDBACK_UNIT=
@@ -162,7 +163,7 @@ npm run dev
 npm run build
 ```
 
-배포 시 Firebase 키는 GitHub Actions Repository Secret의 `FIREBASE_API_KEY`에서 주입합니다. 후원 주소와 애드핏 단위는 GitHub Actions Repository Variables의 `DONATION_URL`, `ADFIT_LEADERBOARD_UNIT`, `ADFIT_DONATE_UNIT`, `ADFIT_FEEDBACK_UNIT`에 등록하면 코드 수정 없이 활성화됩니다.
+배포 시 Firebase 키는 GitHub Actions Repository Secret의 `FIREBASE_API_KEY`에서 주입합니다. 승인된 애드핏 단위(명예의 전당·후원하기·건의사항)는 기본 배포값으로 연결되어 있으며, GitHub Actions Repository Variables의 `ADFIT_LEADERBOARD_UNIT`, `ADFIT_DONATE_UNIT`, `ADFIT_FEEDBACK_UNIT`을 등록하면 코드 수정 없이 교체할 수 있습니다. 후원 주소는 `DONATION_URL`로 등록하면 활성화됩니다.
 
 Firestore 접근 권한은 [firestore.rules](./firestore.rules)에서 랭킹 공개 조회·검증된 신규 등록과 비공개 건의 등록만 허용합니다. 클라이언트 단독 게임 특성상 고의적인 점수 위조를 완전히 차단하는 경쟁형 랭킹은 아니며, 방송 커뮤니티용 캐주얼 랭킹으로 운영합니다.
 
@@ -178,7 +179,7 @@ npx wrangler deploy
 - `npm test`와 `npm run build` 성공
 - Worker `/health` 응답 확인
 - 방송 중인 SOOP·치지직 채널에서 각각 실제 메시지 1회 수신 확인
-- 애드핏 매체 승인 후 발급된 광고 단위를 Repository Variables에 등록
+- 명예의 전당·후원하기·건의사항의 애드핏 728×90 실제 노출 확인
 - 실제 후원 페이지가 결정되면 `DONATION_URL` 등록
 
 ---
