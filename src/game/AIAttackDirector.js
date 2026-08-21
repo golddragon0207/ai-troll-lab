@@ -34,7 +34,7 @@ export class AIAttackDirector {
       if (rect && player.collidesWith(rect)) {
         if (player.isParrying || player.isDashing) {
           attack.done = true;
-          onDefend?.(attack.type);
+          onDefend?.(player.isParrying ? 'parry' : 'dash');
         } else {
           attack.done = true;
           onHit?.(attack.type);
@@ -49,7 +49,7 @@ export class AIAttackDirector {
   }
 
   spawn(player) {
-    const useStrike = this.sequence++ % 2 === 1 || this.stage >= 7 && Math.random() > 0.45;
+    const useStrike = this.sequence++ % 2 === 1;
     if (useStrike) {
       this.attacks.push({
         type: 'strike', phase: 'warning', age: 0,

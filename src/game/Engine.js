@@ -289,6 +289,12 @@ export class Engine {
 
   handleDefense(type) {
     this.successfulDashesCount++;
+    // 보스 보호막은 대시 회피가 아니라 패링 반격으로만 손상된다.
+    if (type !== 'parry') {
+      this.hud.triggerDodgeChat();
+      return;
+    }
+
     const result = this.progression.defend();
     this.stage.setGoalLocked(!this.progression.goalUnlocked);
     if (result.shieldBroken) {
@@ -297,7 +303,7 @@ export class Engine {
         ? '보호막 파괴?! 코어만 모으면 출구가 열린다!'
         : `보스 보호막 ${this.progression.bossShield}/${this.progression.bossShieldMax}!`);
     }
-    if (type !== 'dash') this.hud.triggerDodgeChat();
+    this.hud.triggerDodgeChat();
   }
 
   gameWin() {

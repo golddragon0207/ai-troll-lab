@@ -119,7 +119,7 @@ ai-troll-lab/
     ├── game/
     │   ├── Engine.js       # 60FPS Game Loop & Physics Collision
     │   ├── Player.js       # Player Physics, Dash & Parrying
-    │   ├── AIBully.js      # AI State Machine, 0.5s Telegraphing & Overheat
+    │   ├── AIBully.js      # AI State Machine, 난이도·스테이지별 예고 & Overheat
     │   ├── AIAttackDirector.js # 충격파·추적 낙뢰 패턴과 예고 판정
     │   ├── RunProgression.js   # 코어·콤보·보스 보호막·강화 빌드
     │   ├── Stage.js        # 10 Stages, Hazards & Goal Relocation
