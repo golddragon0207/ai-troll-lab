@@ -2,7 +2,7 @@ import { Player } from './Player.js';
 import { AIBully } from './AIBully.js';
 import { Stage } from './Stage.js';
 import { ParticleSystem } from './Particle.js';
-import { calculateScore, getDifficultyBalance, normalizeDifficulty } from './gameBalance.js';
+import { calculateScore, getStageBalance } from './gameBalance.js';
 import { RunProgression, UPGRADE_POOL } from './RunProgression.js';
 import { AIAttackDirector } from './AIAttackDirector.js';
 
@@ -30,7 +30,7 @@ export class Engine {
       },
       onTeleport: (stageNum) => {
         const missDamage = Math.min(30, 12 + (stageNum - 1) * 2);
-        const balance = getDifficultyBalance(stageNum, this.difficulty);
+        const balance = getStageBalance(stageNum);
         this.takeMentalDamage(Math.round(missDamage * balance.damageMultiplier), 'AI_TELEPORT');
       }
     });
@@ -52,7 +52,6 @@ export class Engine {
     this.successfulDashesCount = 0;
     this.aiOverheatCount = 0;
     this.runStartedAt = 0;
-    this.difficulty = 'challenge';
     this.pendingNextStage = null;
     this.lockMessageCooldown = 0;
 
@@ -121,9 +120,9 @@ export class Engine {
     this.progression.reset();
     this.progression.beginStage(1, this.stage.dataCores.length);
     this.stage.setGoalLocked(true);
-    this.attackDirector.reset(1, this.difficulty);
+    this.attackDirector.reset(1);
     this.resetPlayerBuild();
-    this.ai.setDifficulty(1, this.difficulty);
+    this.ai.setStageBalance(1);
     this.player.reset(this.stage.spawnPoint.x, this.stage.spawnPoint.y);
     this.ai.reset();
     this.particles.clear();
@@ -147,10 +146,6 @@ export class Engine {
     this.lastTimestamp = null;
     this.accumulator = 0;
     this.animationId = requestAnimationFrame(this.boundLoop);
-  }
-
-  setDifficulty(value) {
-    this.difficulty = normalizeDifficulty(value);
   }
 
   resetPlayerBuild() {
@@ -265,8 +260,8 @@ export class Engine {
     this.stage.loadStage(nextNum);
     this.progression.beginStage(nextNum, this.stage.dataCores.length);
     this.stage.setGoalLocked(!this.progression.goalUnlocked);
-    this.attackDirector.reset(nextNum, this.difficulty);
-    this.ai.setDifficulty(nextNum, this.difficulty);
+    this.attackDirector.reset(nextNum);
+    this.ai.setStageBalance(nextNum);
     this.player.reset(this.stage.spawnPoint.x, this.stage.spawnPoint.y);
     this.hud.updateStageDisplay(nextNum, this.stage.totalStages);
     this.hud.setAIDialogue(this.progression.bossShieldMax
@@ -350,7 +345,7 @@ export class Engine {
       overheats: this.aiOverheatCount,
       result,
       playTimeSec,
-      difficulty: this.difficulty,
+      difficulty: 'challenge',
       bonusScore: this.progression.bonusScore
     });
 
@@ -370,7 +365,7 @@ export class Engine {
       result,
       playTimeSec,
       playTimeStr,
-      difficulty: this.difficulty
+      difficulty: 'challenge'
     };
   }
 
@@ -423,7 +418,7 @@ export class Engine {
           }
         },
         onHit: (type) => {
-          const balance = getDifficultyBalance(this.stage.currentStageNum, this.difficulty);
+          const balance = getStageBalance(this.stage.currentStageNum);
           this.player.reset(this.stage.spawnPoint.x, this.stage.spawnPoint.y);
           this.takeMentalDamage(Math.round(12 * balance.damageMultiplier), `AI_${type.toUpperCase()}`);
         }

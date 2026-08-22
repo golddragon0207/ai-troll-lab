@@ -10,6 +10,7 @@ import {
 import { firestore, isFirebaseConfigured } from './firebaseConfig.js';
 
 const cleanText = (value, maxLength) => String(value || '').trim().slice(0, maxLength);
+const normalizeChatPlatform = (value) => ['soop', 'chzzk', 'both'].includes(value) ? value : 'none';
 
 export class FirestoreService {
   get available() {
@@ -48,6 +49,7 @@ export class FirestoreService {
       playTimeSec: Number(result.playTimeSec),
       playTimeStr: cleanText(result.playTimeStr, 16),
       difficulty: result.difficulty === 'nightmare' ? 'nightmare' : 'challenge',
+      chatPlatform: normalizeChatPlatform(result.chatPlatform),
       createdAt: serverTimestamp()
     });
   }

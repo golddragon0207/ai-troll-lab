@@ -46,6 +46,7 @@ export class PlatformChatConnector {
       platform,
       targetId,
       active: true,
+      connected: false,
       ws: null,
       timer: null,
       connectedAt: Date.now(),
@@ -59,7 +60,11 @@ export class PlatformChatConnector {
       if (platform === 'chzzk') await this.connectChzzk(channel);
       return true;
     } catch (error) {
-      if (channel.active) this.setStatus(platform, 'error', error.message || '연결에 실패했습니다.');
+      if (channel.active) {
+        channel.connected = false;
+        this.channels.delete(platform);
+        this.setStatus(platform, 'error', error.message || '연결에 실패했습니다.');
+      }
       return false;
     }
   }
@@ -68,6 +73,7 @@ export class PlatformChatConnector {
     const channel = this.channels.get(platform);
     if (!channel) return;
     channel.active = false;
+    channel.connected = false;
     if (channel.timer) window.clearTimeout(channel.timer);
     if (channel.ws) {
       channel.ws.onclose = null;
@@ -83,6 +89,12 @@ export class PlatformChatConnector {
 
   setStatus(platform, status, message) {
     this.onStatus({ platform, status, message });
+  }
+
+  getConnectionType() {
+    const connected = ['soop', 'chzzk'].filter((platform) => this.channels.get(platform)?.connected);
+    if (connected.length === 2) return 'both';
+    return connected[0] || 'none';
   }
 
   emitMessage(platform, userId, userName, message) {
@@ -140,6 +152,7 @@ export class PlatformChatConnector {
 
       if (packet.cmd === 10100) {
         channel.skipFirstChatBatch = true;
+        channel.connected = true;
         this.setStatus('chzzk', 'connected', '실시간 채팅 연결됨');
         const ping = () => {
           if (!channel.active || socket.readyState !== WebSocket.OPEN) return;
@@ -170,8 +183,12 @@ export class PlatformChatConnector {
       });
     };
 
-    socket.onerror = () => this.setStatus('chzzk', 'error', '치지직 WebSocket 오류');
+    socket.onerror = () => {
+      channel.connected = false;
+      this.setStatus('chzzk', 'error', '치지직 WebSocket 오류');
+    };
     socket.onclose = () => {
+      channel.connected = false;
       if (channel.active) this.setStatus('chzzk', 'disconnected', '연결 종료됨 · 다시 연결해주세요.');
     };
   }
@@ -224,6 +241,7 @@ export class PlatformChatConnector {
 
       if (service === 1) {
         socket.send(this.soopPacket(2, `${this.SOOP_SEPARATOR}${chatNumber}${this.SOOP_SEPARATOR.repeat(5)}`));
+        channel.connected = true;
         this.setStatus('soop', 'connected', '실시간 채팅 연결됨');
         const ping = () => {
           if (!channel.active || socket.readyState !== WebSocket.OPEN) return;
@@ -237,8 +255,12 @@ export class PlatformChatConnector {
       }
     };
 
-    socket.onerror = () => this.setStatus('soop', 'error', 'SOOP WebSocket 오류');
+    socket.onerror = () => {
+      channel.connected = false;
+      this.setStatus('soop', 'error', 'SOOP WebSocket 오류');
+    };
     socket.onclose = () => {
+      channel.connected = false;
       if (channel.active) this.setStatus('soop', 'disconnected', '연결 종료됨 · 다시 연결해주세요.');
     };
   }

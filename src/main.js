@@ -51,8 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const supportButtons = document.querySelectorAll('[data-support]');
   const chatConnectOverlay = document.getElementById('chat-connect-overlay');
   const chatConnectOpenBtn = document.getElementById('chat-connect-open-btn');
+  const homeChatConnectBtn = document.getElementById('home-chat-connect-btn');
   const chatConnectCloseBtn = document.getElementById('chat-connect-close-btn');
-  const difficultySelect = document.getElementById('difficulty-select');
   const upgradeOverlay = document.getElementById('upgrade-overlay');
   const upgradeChoices = document.getElementById('upgrade-choices');
   let lastSupportButton = null;
@@ -155,15 +155,19 @@ document.addEventListener('DOMContentLoaded', () => {
     input.value = readLocalSetting(`ai-troll-lab:${input.dataset.platformInput}:stream`);
   });
 
+  let lastChatConnectButton = chatConnectOpenBtn;
   const closeChatConnectOverlay = () => {
     chatConnectOverlay.classList.add('hidden');
-    chatConnectOpenBtn.focus();
+    lastChatConnectButton?.focus();
   };
 
-  chatConnectOpenBtn.addEventListener('click', () => {
+  const openChatConnectOverlay = (trigger) => {
+    lastChatConnectButton = trigger;
     chatConnectOverlay.classList.remove('hidden');
     chatConnectCloseBtn.focus();
-  });
+  };
+  chatConnectOpenBtn.addEventListener('click', () => openChatConnectOverlay(chatConnectOpenBtn));
+  homeChatConnectBtn.addEventListener('click', () => openChatConnectOverlay(homeChatConnectBtn));
   chatConnectCloseBtn.addEventListener('click', closeChatConnectOverlay);
   chatConnectOverlay.addEventListener('click', (event) => {
     if (event.target === chatConnectOverlay) closeChatConnectOverlay();
@@ -201,7 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start Game
   startBtn.addEventListener('click', () => {
     audioEngine.init();
-    engine.setDifficulty(difficultySelect?.value);
     startOverlay.classList.add('hidden');
     engine.start();
     community.resetResult();
@@ -211,7 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Restart Game
   restartBtn.addEventListener('click', () => {
     resultOverlay.classList.add('hidden');
-    engine.setDifficulty(difficultySelect?.value);
     engine.start();
     community.resetResult();
     audienceVoting.start();
@@ -243,7 +245,12 @@ document.addEventListener('DOMContentLoaded', () => {
     upgradeOverlay.classList.add('hidden');
   });
 
-  window.addEventListener('game-result', (event) => community.setResult(event.detail));
+  window.addEventListener('game-result', (event) => {
+    community.setResult({
+      ...event.detail,
+      chatPlatform: platformChat.getConnectionType()
+    });
+  });
 
   // Sound Toggle
   soundToggleBtn.addEventListener('click', () => {

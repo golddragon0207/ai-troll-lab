@@ -1,4 +1,4 @@
-import { getDifficultyBalance } from './gameBalance.js';
+import { getStageBalance } from './gameBalance.js';
 
 export class AIBully {
   constructor(hud, audioEngine, particleSystem, events = {}) {
@@ -61,9 +61,9 @@ export class AIBully {
     this.hud.updateAIHeat(0, false);
   }
 
-  setDifficulty(stageNum = 1, difficulty = 'challenge') {
+  setStageBalance(stageNum = 1) {
     this.currentStage = Math.max(1, Number(stageNum) || 1);
-    const balance = getDifficultyBalance(this.currentStage, difficulty);
+    const balance = getStageBalance(this.currentStage);
     this.telegraphDuration = balance.telegraphDuration;
     this.attackRadius = balance.attackRadius;
     this.maxOverheatDuration = balance.overheatDuration;

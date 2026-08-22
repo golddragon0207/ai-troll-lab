@@ -512,24 +512,25 @@ body {
   text-align: left;
 }
 
-.difficulty-control {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  color: var(--text-muted);
+.home-connect-btn {
+  width: 100%;
+  padding: 11px 18px;
+  color: var(--cyan-glow);
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.55);
+  border-radius: 8px;
   font-family: var(--font-display);
-  font-size: 0.72rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
 }
 
-.difficulty-control select {
-  min-width: 190px;
-  padding: 7px 10px;
-  color: #fff;
-  background: rgba(189, 0, 255, 0.16);
-  border: 1px solid rgba(189, 0, 255, 0.55);
-  border-radius: 6px;
-  font: inherit;
+.home-connect-btn:hover,
+.home-connect-btn:focus-visible {
+  background: rgba(0, 240, 255, 0.2);
+  transform: translateY(-2px);
+  outline: none;
 }
 
 .primary-btn {

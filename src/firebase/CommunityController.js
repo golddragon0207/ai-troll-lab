@@ -5,6 +5,13 @@ const escapeHtml = (value) => String(value ?? '')
   .replaceAll('"', '&quot;')
   .replaceAll("'", '&#039;');
 
+const CHAT_PLATFORM_LABELS = Object.freeze({
+  soop: 'SOOP 연동',
+  chzzk: '치지직 연동',
+  both: 'SOOP·치지직 연동',
+  none: '연동 안 함'
+});
+
 export class CommunityController {
   constructor(service) {
     this.service = service;
@@ -79,7 +86,7 @@ export class CommunityController {
           <span class="leaderboard-rank">${index + 1}</span>
           <strong>${escapeHtml(entry.nickname)}</strong>
           <span>STAGE ${Number(entry.stage) || 1}</span>
-          <span>${entry.difficulty === 'nightmare' ? '지옥' : '도전'}</span>
+          <span>${CHAT_PLATFORM_LABELS[entry.chatPlatform] || '연동 기록 없음'}</span>
           <b>${Number(entry.score || 0).toLocaleString('ko-KR')}점</b>
         </li>`).join('')}</ol>`;
     } catch (error) {

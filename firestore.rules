@@ -5,7 +5,7 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.resource.data.keys().hasOnly([
                         'nickname', 'score', 'stage', 'dashes', 'overheats',
-                        'result', 'playTimeSec', 'playTimeStr', 'difficulty', 'createdAt'
+                        'result', 'playTimeSec', 'playTimeStr', 'difficulty', 'chatPlatform', 'createdAt'
                       ])
                     && request.resource.data.nickname is string
                     && request.resource.data.nickname.size() >= 1
@@ -29,6 +29,8 @@ service cloud.firestore {
                     && request.resource.data.playTimeStr is string
                     && request.resource.data.playTimeStr.size() <= 16
                     && request.resource.data.difficulty in ['challenge', 'nightmare']
+                    && (!('chatPlatform' in request.resource.data)
+                        || request.resource.data.chatPlatform in ['none', 'soop', 'chzzk', 'both'])
                     && request.resource.data.createdAt == request.time;
       allow update, delete: if false;
     }

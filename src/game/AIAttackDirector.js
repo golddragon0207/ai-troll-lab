@@ -1,12 +1,11 @@
 export class AIAttackDirector {
   constructor() {
     this.attacks = [];
-    this.reset(1, 'challenge');
+    this.reset(1);
   }
 
-  reset(stage = 1, difficulty = 'challenge') {
+  reset(stage = 1) {
     this.stage = stage;
-    this.difficulty = difficulty;
     this.attacks = [];
     this.timer = Math.max(1.9, 4.2 - stage * 0.18);
     this.sequence = 0;
@@ -16,8 +15,7 @@ export class AIAttackDirector {
     this.timer -= dt;
     if (this.stage >= 2 && this.timer <= 0) {
       this.spawn(player);
-      const nightmareBonus = this.difficulty === 'nightmare' ? 0.45 : 0;
-      this.timer = Math.max(1.55, 4.1 - this.stage * 0.17 - nightmareBonus);
+      this.timer = Math.max(1.55, 4.1 - this.stage * 0.17);
     }
 
     for (const attack of this.attacks) {
@@ -53,7 +51,7 @@ export class AIAttackDirector {
     if (useStrike) {
       this.attacks.push({
         type: 'strike', phase: 'warning', age: 0,
-        warning: this.difficulty === 'nightmare' ? 0.62 : 0.82,
+        warning: 0.82,
         x: Math.max(20, Math.min(900, player.x - 18)), width: 72
       });
       return;
@@ -62,7 +60,7 @@ export class AIAttackDirector {
     const fromLeft = player.x > 480;
     this.attacks.push({
       type: 'wave', phase: 'warning', age: 0,
-      warning: this.difficulty === 'nightmare' ? 0.5 : 0.68,
+      warning: 0.68,
       x: fromLeft ? -70 : 990,
       vx: (fromLeft ? 1 : -1) * (300 + this.stage * 16),
       y: 532, width: 70, height: 28

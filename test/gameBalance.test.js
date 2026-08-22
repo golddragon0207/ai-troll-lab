@@ -2,32 +2,22 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   calculateScore,
-  getDifficultyBalance,
-  normalizeDifficulty
+  getStageBalance
 } from '../src/game/gameBalance.js';
 
-test('unknown difficulty falls back to challenge', () => {
-  assert.equal(normalizeDifficulty('unknown'), 'challenge');
-});
-
 test('later stages shorten warning time and expand attack radius', () => {
-  const first = getDifficultyBalance(1, 'challenge');
-  const last = getDifficultyBalance(10, 'challenge');
+  const first = getStageBalance(1);
+  const last = getStageBalance(10);
   assert.ok(last.telegraphDuration < first.telegraphDuration);
   assert.ok(last.attackRadius > first.attackRadius);
   assert.ok(last.overheatDuration < first.overheatDuration);
 });
 
-test('nightmare is harder and awards a larger score', () => {
-  const challenge = getDifficultyBalance(5, 'challenge');
-  const nightmare = getDifficultyBalance(5, 'nightmare');
-  assert.ok(nightmare.telegraphDuration < challenge.telegraphDuration);
-  assert.ok(nightmare.damageMultiplier > challenge.damageMultiplier);
-
+test('score has one stable rule regardless of legacy difficulty input', () => {
   const run = { stage: 10, dashes: 5, overheats: 2, result: 'clear', playTimeSec: 120 };
-  assert.ok(
-    calculateScore({ ...run, difficulty: 'nightmare' })
-      > calculateScore({ ...run, difficulty: 'challenge' })
+  assert.equal(
+    calculateScore({ ...run, difficulty: 'nightmare' }),
+    calculateScore({ ...run, difficulty: 'challenge' })
   );
 });
 
