@@ -38,3 +38,18 @@ test('stage three final core is within a normal jump from the moving platform', 
   const finalCore = stage.dataCores.reduce((highest, core) => core.y < highest.y ? core : highest);
   assert.ok(moving.y - finalCore.platform.y <= 110);
 });
+
+test('stages without a final spring keep the final core within a normal jump', () => {
+  const stage = new Stage();
+  for (const number of [4, 8]) {
+    stage.loadStage(number);
+    const finalCore = stage.dataCores.at(-1);
+    const exitPlatform = stage.platforms.at(-1);
+    assert.equal(finalCore.platform, exitPlatform, `stage ${number} final core is on the exit ledge`);
+    const approachPlatform = stage.platforms.at(-2);
+    assert.ok(
+      approachPlatform.y - finalCore.platform.y <= 100,
+      `stage ${number} exit ledge is within a normal jump rise`
+    );
+  }
+});

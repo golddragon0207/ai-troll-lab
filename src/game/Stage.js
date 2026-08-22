@@ -57,12 +57,13 @@ export class Stage {
     } else if (stageNum === 4) {
       // Stage 4: 레이저 크로스파이어
       this.spawnPoint = { x: 80, y: 480 };
-      this.goalCube = { x: 840, y: 100, width: 32, height: 32 };
+      this.goalCube = { x: 840, y: 118, width: 32, height: 32 };
       this.platforms.push({ x: 50, y: 520, width: 120, height: 20, color: '#00f0ff', type: 'normal' });
       this.platforms.push({ x: 220, y: 430, width: 120, height: 20, color: '#00f0ff', type: 'normal' });
       this.platforms.push({ x: 400, y: 340, width: 120, height: 20, color: '#00f0ff', type: 'moving', vx: 2.5, minX: 350, maxX: 550 });
       this.platforms.push({ x: 600, y: 250, width: 120, height: 20, color: '#00f0ff', type: 'normal' });
-      this.platforms.push({ x: 800, y: 140, width: 110, height: 20, color: '#bd00ff', type: 'normal' });
+      // Keep the final ledge within the normal jump rise from the preceding ledge.
+      this.platforms.push({ x: 800, y: 160, width: 110, height: 20, color: '#bd00ff', type: 'normal' });
       this.hazards.push({ x: 300, y: H - 45, width: 400, height: 15, type: 'spikes' });
       this.hazards.push({ x: 500, y: 180, width: 20, height: 120, type: 'laser' });
 
@@ -107,12 +108,13 @@ export class Stage {
     } else if (stageNum === 8) {
       // Stage 8: 텔레포트 트랩 매트릭스
       this.spawnPoint = { x: 60, y: 480 };
-      this.goalCube = { x: 850, y: 90, width: 32, height: 32 };
+      this.goalCube = { x: 850, y: 108, width: 32, height: 32 };
       this.platforms.push({ x: 40, y: 520, width: 100, height: 20, color: '#00f0ff', type: 'normal' });
       this.platforms.push({ x: 220, y: 450, width: 80, height: 20, color: '#ffb700', type: 'spring' });
       this.platforms.push({ x: 380, y: 320, width: 90, height: 20, color: '#00d3ff', type: 'ice' });
       this.platforms.push({ x: 550, y: 240, width: 100, height: 20, color: '#00f0ff', type: 'moving', vx: 3.5, minX: 450, maxX: 750 });
-      this.platforms.push({ x: 800, y: 130, width: 100, height: 20, color: '#bd00ff', type: 'normal' });
+      // Stage 8 has no spring before the exit, so this must be a normal-jump height.
+      this.platforms.push({ x: 800, y: 150, width: 100, height: 20, color: '#bd00ff', type: 'normal' });
       this.hazards.push({ x: 100, y: H - 45, width: 780, height: 15, type: 'spikes' });
 
     } else if (stageNum === 9) {

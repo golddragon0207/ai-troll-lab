@@ -27,6 +27,18 @@ test('boss exits require both cores and defensive shield breaks', () => {
   assert.equal(run.goalUnlocked, true);
 });
 
+test('every stage can satisfy its exit condition in one complete run', () => {
+  const run = new RunProgression();
+  for (let stage = 1; stage <= 10; stage += 1) {
+    run.beginStage(stage, 3);
+    run.collectCore();
+    run.collectCore();
+    run.collectCore();
+    while (run.bossShield > 0) run.defend();
+    assert.equal(run.goalUnlocked, true, `stage ${stage} exit unlocks`);
+  }
+});
+
 test('upgrades alter the current run without exceeding safe limits', () => {
   const run = new RunProgression();
   const player = { maxDashCooldown: 1, parryDuration: 0.3 };
